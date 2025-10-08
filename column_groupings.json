@@ -1,0 +1,87 @@
+{
+  "Salary/Wage": [
+    "Salary_from_Government_including_NYSC",
+    "Salary_Wages_From_A_Business_Company",
+    "Salary_Wages_From_An_Individual_With_Own_Business",
+    "Salary_Wages_From_An_Individual_For_Chores"
+  ],
+  "Business/Trade": [
+    "Salary_Wages_From_A_Business_Company",
+    "Salary_Wages_From_An_Individual_With_Own_Business",
+    "Own_Business_Trader_Non-farming",
+    "Own_Business_Trader_Farming_Produce_Livestock",
+    "Own_Business_Trader_Agricultural_Inputs",
+    "Own_Business _Provide_service"
+  ],
+  "Farming/Agriculture": [
+    "Subsistence_Small scale farming",
+    "Commercial_Large_scale_farming",
+    "Own_Business_Trader_Non-farming",
+    "Own_Business_Trader_Farming_Produce_Livestock",
+    "Own_Business_Trader_Agricultural_Inputs"
+  ],
+  "Income Sources": [
+    "Income_Level",
+    "Get_Money_From_Family_Friends (Students)",
+    "Get_Money_From_Family_Friends(unemployed, \nnon -students)",
+    "E9_19_Get_Money_From_Family_Friends(retired)"
+  ],
+  "Financial Services Access": [
+    "Is there a financial service agent close to where you live (home)? -",
+    "Is there an atm close to where you live (home)?",
+    "Is there a microfinance close to where you live (home)",
+    "Is there a primary mortgage bank close to where you live",
+    "Bank_Account"
+  ],
+  "Mobile/Digital": [
+    "Mobile Phone",
+    "Reliable phone network?"
+  ],
+  "ID/Documentation": [
+    "Salary_Wages_From_An_Individual_With_Own_Business",
+    "Salary_Wages_From_An_Individual_For_Chores",
+    "Own_Business _Provide_service",
+    "Is there a non interest service provider close to where you live?",
+    "NIN",
+    "BVN"
+  ],
+  "Savings/Investment": [
+    "Interest_On_Savings",
+    "Return_On_Investments",
+    "Is there a non interest service provider close to where you live?"
+  ],
+  "Pension/Grant": [
+    "Pension",
+    "Government_Grant",
+    "Drought_Relief"
+  ],
+  "Family Support": [
+    "Get_Money_From_Family_Friends (Students)",
+    "Get_Money_From_Family_Friends(unemployed, \nnon -students)",
+    "E9_19_Get_Money_From_Family_Friends(retired)"
+  ],
+  "Demographics": [
+    "Education",
+    "Gender",
+    "Age_Group",
+    "Salary_Wages_From_A_Business_Company",
+    "Salary_Wages_From_An_Individual_With_Own_Business",
+    "Salary_Wages_From_An_Individual_For_Chores",
+    "Is there a financial service agent close to where you live (home)? -",
+    "Is there a primary mortgage bank close to where you live"
+  ],
+  "Geography": [
+    "Sector"
+  ],
+  "Wealth/Assets": [
+    "Salary_Wages_From_An_Individual_With_Own_Business",
+    "Own_Business_Trader_Non-farming",
+    "Own_Business_Trader_Farming_Produce_Livestock",
+    "Own_Business_Trader_Agricultural_Inputs",
+    "Own_Business _Provide_service",
+    "Rent"
+  ],
+  "Account Types": [
+    "Bank_Account"
+  ]
+}

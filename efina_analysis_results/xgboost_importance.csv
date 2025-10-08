@@ -1,0 +1,20 @@
+variable,xgb_importance
+access_agents,0.73200476
+year_2023,0.13223088
+mobile_money_binary,0.032219976
+education_numeric,0.028641436
+transactional_account_binary,0.01995194
+wealth_numeric,0.008334937
+savings_frequency_numeric,0.006702072
+runs_out_of_money,0.004972962
+gender_male,0.004596638
+urban,0.004444193
+region_South East,0.0044305064
+region_South West,0.0038298783
+income_numeric,0.0031559684
+region_South South,0.003118397
+Population,0.0030981058
+region_North West,0.003060284
+region_North East,0.0028969536
+Age_numeric,0.00231013
+year_2020,0.0
