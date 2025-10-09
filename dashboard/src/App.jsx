@@ -19,7 +19,9 @@ function App() {
       
       // Use XMLHttpRequest for progress tracking
       const xhr = new XMLHttpRequest();
-      xhr.open('GET', '/population_data.json', true);
+      // Use relative path that works with base path configuration
+      const dataPath = import.meta.env.BASE_URL + 'population_data.json';
+      xhr.open('GET', dataPath, true);
       
       xhr.onprogress = (event) => {
         if (event.lengthComputable) {
