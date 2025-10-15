@@ -69,12 +69,6 @@ export default function IndividualMode({ onReset }) {
         }
       }
       
-      // Prevent Income Diversity from being set to 0 when income > 0
-      if (key === 'Income_Diversity_Score' && value === 0 && newInputs.income_numeric > 0) {
-        // Silently prevent - income earners must have at least 1 diversity score
-        return prev; // Don't update
-      }
-      
       // If Saves_Money is turned off, disable all dependent savings variables
       if (key === 'Saves_Money' && value === 0) {
         newInputs.Regular_Saver = 0;
@@ -100,9 +94,7 @@ export default function IndividualMode({ onReset }) {
         if (!anySource) {
           newInputs.Business_Income = 1; // sensible default
         }
-        if ((newInputs.Income_Diversity_Score || 0) < 1) {
-          newInputs.Income_Diversity_Score = 1;
-        }
+        // Income_Diversity_Score will be auto-calculated below
       }
 
       // Global guard: if income > 0 and all sources get toggled off, re-enable Business_Income
@@ -110,8 +102,14 @@ export default function IndividualMode({ onReset }) {
         const sourcesCount = (newInputs.Formal_Employment || 0) + (newInputs.Business_Income || 0) + (newInputs.Agricultural_Income || 0) + (newInputs.Passive_Income || 0);
         if (sourcesCount === 0) {
           newInputs.Business_Income = 1;
-          if ((newInputs.Income_Diversity_Score || 0) < 1) newInputs.Income_Diversity_Score = 1;
         }
+      }
+      
+      // AUTO-CALCULATE Income Diversity Score based on selected sources
+      // This should always match the number of income sources selected
+      if (key === 'income_numeric' || key === 'Formal_Employment' || key === 'Business_Income' || key === 'Agricultural_Income' || key === 'Passive_Income') {
+        const totalSources = (newInputs.Formal_Employment || 0) + (newInputs.Business_Income || 0) + (newInputs.Agricultural_Income || 0) + (newInputs.Passive_Income || 0);
+        newInputs.Income_Diversity_Score = totalSources;
       }
       
       return newInputs;
@@ -698,16 +696,14 @@ export default function IndividualMode({ onReset }) {
               help="Income from rent, pension, interest, or investments"
             />
 
-            <SliderInput
-              label="Income Diversity"
-              value={inputs.Income_Diversity_Score}
-              onChange={(val) => updateInput('Income_Diversity_Score', val)}
-              min={inputs.income_numeric > 0 ? 1 : 0}
-              max={5}
-              step={1}
-              disabled={inputs.income_numeric === 0}
-              help={inputs.income_numeric > 0 ? "Number of active income sources (1–5+, minimum 1 when earning income)" : "Number of active income sources (0 when no income)"}
-            />
+            {/* Income Diversity - Auto-calculated, read-only display */}
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <label className="text-sm font-medium text-text-primary">Income Diversity Score</label>
+                <span className="text-sm font-semibold text-accent-primary">{inputs.Income_Diversity_Score}</span>
+              </div>
+              
+            </div>
           </FeatureCard>
 
           {/* Feature Contributions */}
