@@ -101,7 +101,7 @@ export const SURVEY_DEFAULTS = {
   // NEW reinstated variables
   Has_NIN: 0,
   Formal_Employment: 0,
-  Business_Income: 0,
+  Business_Income: 1,
   Agricultural_Income: 0,
   Passive_Income: 0,
   Income_Diversity_Score: 1,

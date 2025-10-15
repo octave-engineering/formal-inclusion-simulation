@@ -29,7 +29,7 @@ const SURVEY_DEFAULTS = {
   Income_Level_Ordinal: 6,
   Formal_Employment_Binary: 0,
   Agricultural_Income_Binary: 0,
-  Business_Income_Binary: 0,
+  Business_Income_Binary: 1,
   Passive_Income_Binary: 0,
   Income_Diversity_Score: 0.6,
   Financial_Access_Index: 0.14,
