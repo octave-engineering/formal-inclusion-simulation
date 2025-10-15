@@ -275,12 +275,11 @@ else:
     print("   ⚠️  Employment columns not found")
     df['Formal_Employment'] = 0
 
-# 3. BUSINESS_INCOME
-print("\n3. Business_Income...")
+# 3. BUSINESS_INCOME (Non-farming business)
+print("\n3. Business_Income (Non-farming)...")
 bus_cols = [
     'Own_Business_Trader_Non-farming',
-    'Own_Business_Trader_Farming_Produce_Livestock',
-    'Own_Business _Provide_service'
+    'Own_Business _Provide_service'  # Service providers like hairdressers, tailors, mechanics
 ]
 existing_bus_cols = [c for c in bus_cols if c in df.columns]
 if existing_bus_cols:
@@ -288,33 +287,55 @@ if existing_bus_cols:
         lambda x: 1 if (x.str.lower().str.strip() == 'yes').any() else 0, axis=1
     )
     bus_pct = df['Business_Income'].mean() * 100
-    print(f"   ✅ Has business income: {df['Business_Income'].sum():,} ({bus_pct:.1f}%)")
+    print(f"   ✅ Has business income (non-farming): {df['Business_Income'].sum():,} ({bus_pct:.1f}%)")
 else:
     print("   ⚠️  Business columns not found")
     df['Business_Income'] = 0
 
-# 4. AGRICULTURAL_INCOME
-print("\n4. Agricultural_Income...")
-agric_cols = [
+# 4. SUBSISTENCE_FARMING (Small scale, irregular income)
+print("\n4. Subsistence_Farming...")
+subsistence_cols = [
     'Subsistence_Small scale farming',
-    'Commercial_Large_scale_farming',
-    'Own_Business_Trader_Farming_Produce_Livestock',
-    'Own_Business_Trader_Agricultural_Inputs'
+    'Own_Business_Trader_Farming_Produce_Livestock',  # Small scale farming produce
+    'Own_Business_Trader_Agricultural_Inputs'  # Small scale agricultural inputs
 ]
-existing_agric_cols = [c for c in agric_cols if c in df.columns]
-if existing_agric_cols:
-    df['Agricultural_Income'] = df[existing_agric_cols].apply(
+existing_subsistence_cols = [c for c in subsistence_cols if c in df.columns]
+if existing_subsistence_cols:
+    df['Subsistence_Farming'] = df[existing_subsistence_cols].apply(
         lambda x: 1 if (x.str.lower().str.strip() == 'yes').any() else 0, axis=1
     )
-    agric_pct = df['Agricultural_Income'].mean() * 100
-    print(f"   ✅ Has agricultural income: {df['Agricultural_Income'].sum():,} ({agric_pct:.1f}%)")
+    subsistence_pct = df['Subsistence_Farming'].mean() * 100
+    print(f"   ✅ Has subsistence farming income: {df['Subsistence_Farming'].sum():,} ({subsistence_pct:.1f}%)")
 else:
-    print("   ⚠️  Agricultural columns not found")
-    df['Agricultural_Income'] = 0
+    print("   ⚠️  Subsistence farming columns not found")
+    df['Subsistence_Farming'] = 0
 
-# 5. PASSIVE_INCOME
-print("\n5. Passive_Income...")
-passive_cols = ['Rent', 'Pension', 'Interest_On_Savings', 'Return_On_Investments']
+# 5. COMMERCIAL_FARMING (Large scale, more formal)
+print("\n5. Commercial_Farming...")
+commercial_cols = [
+    'Commercial_Large_scale_farming'
+]
+existing_commercial_cols = [c for c in commercial_cols if c in df.columns]
+if existing_commercial_cols:
+    df['Commercial_Farming'] = df[existing_commercial_cols].apply(
+        lambda x: 1 if (x.str.lower().str.strip() == 'yes').any() else 0, axis=1
+    )
+    commercial_pct = df['Commercial_Farming'].mean() * 100
+    print(f"   ✅ Has commercial farming income: {df['Commercial_Farming'].sum():,} ({commercial_pct:.1f}%)")
+else:
+    print("   ⚠️  Commercial farming columns not found")
+    df['Commercial_Farming'] = 0
+
+# 6. PASSIVE_INCOME (Rent, pension, grants, interest, returns)
+print("\n6. Passive_Income...")
+passive_cols = [
+    'Rent', 
+    'Pension', 
+    'Government_grant',
+    'Drought_relief',
+    'Interest_On_Savings', 
+    'Return_On_Investments'
+]
 existing_passive_cols = [c for c in passive_cols if c in df.columns]
 if existing_passive_cols:
     df['Passive_Income'] = df[existing_passive_cols].apply(
@@ -326,16 +347,34 @@ else:
     print("   ⚠️  Passive income columns not found")
     df['Passive_Income'] = 0
 
-# 6. INCOME_DIVERSITY_SCORE
-print("\n6. Income_Diversity_Score...")
-all_income_cols = emp_cols + bus_cols + agric_cols + passive_cols
+# 7. FAMILY_FRIENDS_SUPPORT (Dependency on others)
+print("\n7. Family_Friends_Support...")
+family_cols = [
+    'Get_Money_From_Family_Friends (Students)',
+    'Get_Money_From_Family_Friends(unemployed, non -students)',
+    'E9_19_Get_Money_From_Family_Friends(retired)'
+]
+existing_family_cols = [c for c in family_cols if c in df.columns]
+if existing_family_cols:
+    df['Family_Friends_Support'] = df[existing_family_cols].apply(
+        lambda x: 1 if (x.str.lower().str.strip() == 'yes').any() else 0, axis=1
+    )
+    family_pct = df['Family_Friends_Support'].mean() * 100
+    print(f"   ✅ Has family/friends support: {df['Family_Friends_Support'].sum():,} ({family_pct:.1f}%)")
+else:
+    print("   ⚠️  Family/friends support columns not found")
+    df['Family_Friends_Support'] = 0
+
+# 8. INCOME_DIVERSITY_SCORE (Count of distinct income types)
+print("\n8. Income_Diversity_Score...")
+all_income_cols = emp_cols + bus_cols + subsistence_cols + commercial_cols + passive_cols + family_cols
 existing_income_cols = [c for c in all_income_cols if c in df.columns]
 if existing_income_cols:
     df['Income_Diversity_Score'] = df[existing_income_cols].apply(
         lambda x: (x.str.lower().str.strip() == 'yes').sum(), axis=1
     )
     print(f"   ✅ Mean diversity: {df['Income_Diversity_Score'].mean():.2f}")
-    print(f"      Distribution: {df['Income_Diversity_Score'].value_counts().sort_index().head().to_dict()}")
+    print(f"      Distribution: {df['Income_Diversity_Score'].value_counts().sort_index().head(10).to_dict()}")
 else:
     print("   ⚠️  Income source columns not found")
     df['Income_Diversity_Score'] = 0
@@ -392,14 +431,14 @@ print(f"   Distribution: Min={df['Infrastructure_Access_Index'].min()}, Max={df[
 
 # 10. INTERACTION TERMS
 print("\n10. Creating Interaction Terms...")
-# Agricultural income interacts with other employment types and location
-df['Ag_x_Formal'] = df['Agricultural_Income'] * df['Formal_Employment']
-df['Ag_x_Business'] = df['Agricultural_Income'] * df['Business_Income']
-df['Ag_x_Urban'] = df['Agricultural_Income'] * df['urban']
+# Subsistence farming interacts with other employment types and location
+df['Subsist_x_Formal'] = df['Subsistence_Farming'] * df['Formal_Employment']
+df['Subsist_x_Business'] = df['Subsistence_Farming'] * df['Business_Income']
+df['Subsist_x_Urban'] = df['Subsistence_Farming'] * df['urban']
 
-print(f"   Ag × Formal Employment: {df['Ag_x_Formal'].sum():,} people ({df['Ag_x_Formal'].mean()*100:.1f}%)")
-print(f"   Ag × Business Income: {df['Ag_x_Business'].sum():,} people ({df['Ag_x_Business'].mean()*100:.1f}%)")
-print(f"   Ag × Urban: {df['Ag_x_Urban'].sum():,} people ({df['Ag_x_Urban'].mean()*100:.1f}%)")
+print(f"   Subsistence × Formal Employment: {df['Subsist_x_Formal'].sum():,} people ({df['Subsist_x_Formal'].mean()*100:.1f}%)")
+print(f"   Subsistence × Business Income: {df['Subsist_x_Business'].sum():,} people ({df['Subsist_x_Business'].mean()*100:.1f}%)")
+print(f"   Subsistence × Urban: {df['Subsist_x_Urban'].sum():,} people ({df['Subsist_x_Urban'].mean()*100:.1f}%)")
 
 # ============================================================================
 # STEP 4: PREPARE FEATURES AND TARGET
@@ -413,20 +452,20 @@ print(f"Target distribution:")
 print(f"  Formally Included: {y.sum():,} ({y.mean()*100:.1f}%)")
 print(f"  Not Included: {(1-y).sum():,} ({(1-y.mean())*100:.1f}%)")
 
-# Base features (26 total: 15 original + 8 new + 3 interactions, Mobility_Index commented out)
+# Base features (28 total: 15 original + 10 new + 3 interactions, Mobility_Index commented out)
 base_feature_list = [
     # Original 15 (runs_out_of_money replaced with money_shortage_frequency)
     'gender_male', 'education_numeric', 'income_numeric', 'wealth_numeric', 'urban',
     'savings_frequency_numeric', 'money_shortage_frequency',
     'Saves_Money', 'Informal_Savings_Mode', 'Regular_Saver', 'Diverse_Savings_Reasons',
     'Old_Age_Planning', 'Savings_Frequency_Score', 'Savings_Behavior_Score',
-    # NEW 8 (Mobility_Index commented out)
+    # NEW income sources (split agricultural, added family support)
     'Has_NIN', 'Formal_Employment', 'Business_Income',
-    'Agricultural_Income', 'Passive_Income',
+    'Subsistence_Farming', 'Commercial_Farming', 'Passive_Income', 'Family_Friends_Support',
     'Income_Diversity_Score', 'Digital_Access_Index',
     'Infrastructure_Access_Index',  # 'Mobility_Index',
-    # NEW 3 Interaction Terms
-    'Ag_x_Formal', 'Ag_x_Business', 'Ag_x_Urban'
+    # NEW 3 Interaction Terms (Subsistence farming)
+    'Subsist_x_Formal', 'Subsist_x_Business', 'Subsist_x_Urban'
 ]
 
 # Ensure all base features exist with safe defaults before selection
@@ -448,15 +487,17 @@ base_defaults = {
     'Has_NIN': 0,
     'Formal_Employment': 0,
     'Business_Income': 0,
-    'Agricultural_Income': 0,
+    'Subsistence_Farming': 0,
+    'Commercial_Farming': 0,
     'Passive_Income': 0,
+    'Family_Friends_Support': 0,
     'Income_Diversity_Score': 0,
     'Digital_Access_Index': 0,
     'Infrastructure_Access_Index': 0,
     # 'Mobility_Index': 4.0,
-    'Ag_x_Formal': 0,
-    'Ag_x_Business': 0,
-    'Ag_x_Urban': 0
+    'Subsist_x_Formal': 0,
+    'Subsist_x_Business': 0,
+    'Subsist_x_Urban': 0
 }
 for col in base_feature_list:
     if col not in df.columns:
@@ -604,10 +645,10 @@ state_coefs = coefficients[coefficients['feature'].str.startswith('state_')].sor
 
 # Highlight NEW features
 new_feature_names = ['Has_NIN', 'Formal_Employment', 'Business_Income',
-                     'Agricultural_Income', 'Passive_Income',
+                     'Subsistence_Farming', 'Commercial_Farming', 'Passive_Income', 'Family_Friends_Support',
                      'Income_Diversity_Score', 'Digital_Access_Index',
                      'Infrastructure_Access_Index',  # 'Mobility_Index',
-                     'Ag_x_Formal', 'Ag_x_Business', 'Ag_x_Urban']
+                     'Subsist_x_Formal', 'Subsist_x_Business', 'Subsist_x_Urban']
 
 print(f"\n{'='*80}")
 print("BASE FEATURE COEFFICIENTS (NEW features marked with ✨):")

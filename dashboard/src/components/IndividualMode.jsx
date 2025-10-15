@@ -61,8 +61,11 @@ export default function IndividualMode({ onReset }) {
       const newInputs = { ...prev, [key]: parsedValue };
       
       // Prevent untoggling the last income source if income > 0 (silently)
-      if ((key === 'Formal_Employment' || key === 'Business_Income' || key === 'Agricultural_Income' || key === 'Passive_Income') && value === 0 && newInputs.income_numeric > 0) {
-        const incomeSources = (newInputs.Formal_Employment || 0) + (newInputs.Business_Income || 0) + (newInputs.Agricultural_Income || 0) + (newInputs.Passive_Income || 0);
+      if ((key === 'Formal_Employment' || key === 'Business_Income' || key === 'Subsistence_Farming' || 
+           key === 'Commercial_Farming' || key === 'Passive_Income' || key === 'Family_Friends_Support') && value === 0 && newInputs.income_numeric > 0) {
+        const incomeSources = (newInputs.Formal_Employment || 0) + (newInputs.Business_Income || 0) + 
+                             (newInputs.Subsistence_Farming || 0) + (newInputs.Commercial_Farming || 0) + 
+                             (newInputs.Passive_Income || 0) + (newInputs.Family_Friends_Support || 0);
         if (incomeSources === 0) {
           // Would result in zero sources - silently prevent it
           return prev; // Don't update
@@ -83,14 +86,18 @@ export default function IndividualMode({ onReset }) {
       if (key === 'income_numeric' && parseFloat(value) === 0) {
         newInputs.Formal_Employment = 0;
         newInputs.Business_Income = 0;
-        newInputs.Agricultural_Income = 0;
+        newInputs.Subsistence_Farming = 0;
+        newInputs.Commercial_Farming = 0;
         newInputs.Passive_Income = 0;
+        newInputs.Family_Friends_Support = 0;
         newInputs.Income_Diversity_Score = 0;
       }
 
       // If income is positive, ensure at least one income source is selected
       if (key === 'income_numeric' && parseFloat(value) > 0) {
-        const anySource = (newInputs.Formal_Employment || 0) + (newInputs.Business_Income || 0) + (newInputs.Agricultural_Income || 0) + (newInputs.Passive_Income || 0) > 0;
+        const anySource = (newInputs.Formal_Employment || 0) + (newInputs.Business_Income || 0) + 
+                         (newInputs.Subsistence_Farming || 0) + (newInputs.Commercial_Farming || 0) + 
+                         (newInputs.Passive_Income || 0) + (newInputs.Family_Friends_Support || 0) > 0;
         if (!anySource) {
           newInputs.Business_Income = 1; // sensible default
         }
@@ -99,7 +106,9 @@ export default function IndividualMode({ onReset }) {
 
       // Global guard: if income > 0 and all sources get toggled off, re-enable Business_Income
       if (key !== 'income_numeric' && (newInputs.income_numeric || 0) > 0) {
-        const sourcesCount = (newInputs.Formal_Employment || 0) + (newInputs.Business_Income || 0) + (newInputs.Agricultural_Income || 0) + (newInputs.Passive_Income || 0);
+        const sourcesCount = (newInputs.Formal_Employment || 0) + (newInputs.Business_Income || 0) + 
+                             (newInputs.Subsistence_Farming || 0) + (newInputs.Commercial_Farming || 0) + 
+                             (newInputs.Passive_Income || 0) + (newInputs.Family_Friends_Support || 0);
         if (sourcesCount === 0) {
           newInputs.Business_Income = 1;
         }
@@ -107,8 +116,11 @@ export default function IndividualMode({ onReset }) {
       
       // AUTO-CALCULATE Income Diversity Score based on selected sources
       // This should always match the number of income sources selected
-      if (key === 'income_numeric' || key === 'Formal_Employment' || key === 'Business_Income' || key === 'Agricultural_Income' || key === 'Passive_Income') {
-        const totalSources = (newInputs.Formal_Employment || 0) + (newInputs.Business_Income || 0) + (newInputs.Agricultural_Income || 0) + (newInputs.Passive_Income || 0);
+      if (key === 'income_numeric' || key === 'Formal_Employment' || key === 'Business_Income' || 
+          key === 'Subsistence_Farming' || key === 'Commercial_Farming' || key === 'Passive_Income' || key === 'Family_Friends_Support') {
+        const totalSources = (newInputs.Formal_Employment || 0) + (newInputs.Business_Income || 0) + 
+                            (newInputs.Subsistence_Farming || 0) + (newInputs.Commercial_Farming || 0) + 
+                            (newInputs.Passive_Income || 0) + (newInputs.Family_Friends_Support || 0);
         newInputs.Income_Diversity_Score = totalSources;
       }
       
@@ -141,8 +153,10 @@ export default function IndividualMode({ onReset }) {
       // { name: 'Mobility Index', key: 'Mobility_Index', icon: TrendingUp, color: '#8b5cf6' },  // COMMENTED OUT
       { name: 'Formally Employed', key: 'Formal_Employment', icon: Wallet, color: '#0ea5e9' },
       { name: 'Business Income', key: 'Business_Income', icon: DollarSign, color: '#16a34a' },
-      { name: 'Agricultural Income', key: 'Agricultural_Income', icon: MapPin, color: '#65a30d' },
+      { name: 'Subsistence Farming', key: 'Subsistence_Farming', icon: MapPin, color: '#65a30d' },
+      { name: 'Commercial Farming', key: 'Commercial_Farming', icon: MapPin, color: '#84cc16' },
       { name: 'Passive Income', key: 'Passive_Income', icon: PiggyBank, color: '#a16207' },
+      { name: 'Family/Friends Support', key: 'Family_Friends_Support', icon: Users, color: '#ef4444' },
       { name: 'Income Diversity', key: 'Income_Diversity_Score', icon: TrendingUp, color: '#2563eb' },
       { name: 'Age 25-34', key: 'age_25-34', icon: Users, color: '#6366f1' },
       { name: 'Age 35-44', key: 'age_35-44', icon: Users, color: '#6366f1' },
@@ -651,11 +665,6 @@ export default function IndividualMode({ onReset }) {
                   <p className="text-xs font-semibold text-amber-900 mb-1">About Income Sources</p>
                   <p className="text-xs text-amber-800 leading-relaxed">
                     Each toggle represents a <strong>type</strong> of income, not the number of jobs. A person can have multiple businesses but it's still one "Business Income" type. 
-                    <strong className="block mt-1">Agricultural Income Effect:</strong> Base effect is negative (-0.30) due to irregular, cash-based income and limited access to financial infrastructure.
-                    {/* <strong className="block mt-1">• Agricultural + Formal Employment:</strong> Small positive boost (+0.01) - formal job helps
-                    <br/>• <strong>Agricultural + Business:</strong> Negative interaction (-0.06) - likely subsistence farmers
-                    <br/>• <strong>Agricultural + Urban location:</strong> Negative (-0.05) - signals lower socioeconomic status
-                    <br/>• <strong>Income Diversity Score</strong> (+0.25) also helps offset the penalty when multiple income types exist. */}
                   </p>
                 </div>
               </div>
@@ -679,12 +688,30 @@ export default function IndividualMode({ onReset }) {
             />
 
             <ToggleInput
-              label="Agricultural Income"
-              value={inputs.Agricultural_Income}
-              onChange={(val) => updateInput('Agricultural_Income', val)}
+              label="Subsistence Farming"
+              value={inputs.Subsistence_Farming}
+              onChange={(val) => updateInput('Subsistence_Farming', val)}
               disabled={inputs.income_numeric === 0}
-              disabledMessage="Set Monthly Income > 0 to adjust agricultural income"
-              help="Income from farming/produce/livestock or agricultural inputs"
+              disabledMessage="Set Monthly Income > 0 to adjust farming income"
+              help="Small-scale farming: subsistence, produce, livestock, agricultural inputs"
+            />
+
+            <ToggleInput
+              label="Commercial Farming"
+              value={inputs.Commercial_Farming}
+              onChange={(val) => updateInput('Commercial_Farming', val)}
+              disabled={inputs.income_numeric === 0}
+              disabledMessage="Set Monthly Income > 0 to adjust commercial farming"
+              help="Large-scale commercial farming operations"
+            />
+
+            <ToggleInput
+              label="Family/Friends Support"
+              value={inputs.Family_Friends_Support}
+              onChange={(val) => updateInput('Family_Friends_Support', val)}
+              disabled={inputs.income_numeric === 0}
+              disabledMessage="Set Monthly Income > 0 to adjust family support"
+              help="Money or expenses paid for by family/friends (students, unemployed, retired)"
             />
 
             <ToggleInput
