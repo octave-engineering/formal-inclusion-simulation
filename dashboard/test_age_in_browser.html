@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Age Group Prediction</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; }
+        .test-result { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .pass { background-color: #d4edda; }
+        .fail { background-color: #f8d7da; }
+        table { border-collapse: collapse; width: 100%; margin: 20px 0; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+    <h1>Age Group Prediction Test</h1>
+    <div id="results"></div>
+
+    <script type="module">
+        // Import from your actual prediction file
+        import { 
+            predictIndividual, 
+            SURVEY_DEFAULTS, 
+            encodeAgeGroup,
+            AGE_FEATURES,
+            REFERENCE_AGE_GROUP
+        } from './src/utils/prediction_new.js';
+
+        const resultsDiv = document.getElementById('results');
+
+        // Test 1: Check defaults
+        resultsDiv.innerHTML += `<h2>Test 1: Check Defaults</h2>`;
+        resultsDiv.innerHTML += `<p>Default age_group: <strong>${SURVEY_DEFAULTS.age_group}</strong></p>`;
+        resultsDiv.innerHTML += `<p>Reference age_group: <strong>${REFERENCE_AGE_GROUP}</strong></p>`;
+
+        // Test 2: Test encoding
+        resultsDiv.innerHTML += `<h2>Test 2: Age Encoding</h2>`;
+        const ageGroups = ['18-24', '25-34', '35-44', '45-54', '55-64', '65+'];
+        let encodingTable = '<table><tr><th>Age Group</th><th>Encoding</th></tr>';
+        ageGroups.forEach(group => {
+            const encoded = encodeAgeGroup(group);
+            encodingTable += `<tr><td>${group}</td><td>${JSON.stringify(encoded)}</td></tr>`;
+        });
+        encodingTable += '</table>';
+        resultsDiv.innerHTML += encodingTable;
+
+        // Test 3: Predictions with different age groups
+        resultsDiv.innerHTML += `<h2>Test 3: Predictions by Age Group</h2>`;
+        resultsDiv.innerHTML += `<p>Using default inputs except age group...</p>`;
+        
+        let predictionTable = '<table><tr><th>Age Group</th><th>Probability</th><th>Change from 18-24</th></tr>';
+        let baselineProbability = null;
+        
+        ageGroups.forEach(group => {
+            const testInputs = {
+                ...SURVEY_DEFAULTS,
+                age_group: group,
+                state: 'LAGOS'
+            };
+            const probability = predictIndividual(testInputs);
+            
+            if (group === '18-24') {
+                baselineProbability = probability;
+            }
+            
+            const change = baselineProbability ? ((probability - baselineProbability) * 100).toFixed(2) : '0.00';
+            const changeStr = change > 0 ? `+${change}` : change;
+            
+            predictionTable += `<tr>
+                <td>${group}</td>
+                <td>${(probability * 100).toFixed(2)}%</td>
+                <td>${changeStr}%</td>
+            </tr>`;
+        });
+        predictionTable += '</table>';
+        resultsDiv.innerHTML += predictionTable;
+
+        // Test 4: Expected pattern check
+        resultsDiv.innerHTML += `<h2>Test 4: Pattern Validation</h2>`;
+        const predictions = ageGroups.map(group => {
+            const testInputs = { ...SURVEY_DEFAULTS, age_group: group, state: 'LAGOS' };
+            return { group, prob: predictIndividual(testInputs) };
+        });
+        
+        const age35_44 = predictions.find(p => p.group === '35-44').prob;
+        const age65plus = predictions.find(p => p.group === '65+').prob;
+        const age18_24 = predictions.find(p => p.group === '18-24').prob;
+        
+        const test1 = age35_44 > age18_24;
+        const test2 = age65plus < age18_24;
+        const test3 = age35_44 > age65plus;
+        
+        resultsDiv.innerHTML += `
+            <div class="test-result ${test1 ? 'pass' : 'fail'}">
+                ✓ 35-44 should have higher probability than 18-24: ${test1 ? 'PASS' : 'FAIL'}
+            </div>
+            <div class="test-result ${test2 ? 'pass' : 'fail'}">
+                ✓ 65+ should have lower probability than 18-24: ${test2 ? 'PASS' : 'FAIL'}
+            </div>
+            <div class="test-result ${test3 ? 'pass' : 'fail'}">
+                ✓ 35-44 should have higher probability than 65+: ${test3 ? 'PASS' : 'FAIL'}
+            </div>
+        `;
+        
+        const allPass = test1 && test2 && test3;
+        resultsDiv.innerHTML += `<h3 style="color: ${allPass ? 'green' : 'red'}">${allPass ? '✓ ALL TESTS PASSED' : '✗ SOME TESTS FAILED'}</h3>`;
+    </script>
+</body>
+</html>

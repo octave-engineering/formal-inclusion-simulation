@@ -1,0 +1,52 @@
+﻿================================================================================
+COMPLETE MODEL REBUILD FROM EXCEL WITH ALL MISSING VARIABLES
+================================================================================
+
+[STEP 1] Loading Excel file...
+This may take a minute for 28,392 rows...
+Loaded: (28392, 37)
+Target column 'Formally_Included': {1: 17378, 0: 11014}
+
+[STEP 2] Engineering base features...
+
+1. gender_male...
+   Male: 13190 (46.5%)
+
+2. Age_numeric...
+python : Traceback (most recent call last):
+At line:1 char:1
++ python 
+rebuild_complete_model_from_excel.py 2>&1 
+| Out-File -FilePath ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~
+    + CategoryInfo          : NotSpecified 
+   : (Traceback (most recent call last)::  
+  String) [], RemoteException
+    + FullyQualifiedErrorId : NativeComman 
+   dError
+ 
+  File "C:\Users\Abdul\Documents\Octave 
+Analytics\Efina\Formal Inclusion Simulation
+\rebuild_complete_model_from_excel.py", 
+line 115, in <module>
+   Age_Group values: ['18 and above' '15-17']
+   Found age columns: ['Salary_Wages_From_A_Business_Company', 'Salary_Wages_From_An_Individual_With_Own_Business', 'Salary_Wages_From_An_Individual_For_Chores', 'Is there a financial service agent close to where you live (home)? -', 'Is there a primary mortgage bank close to where you live']
+
+3. education_numeric...
+   Warning: 1927 unmapped education values
+   Distribution: {0.0: 5990, 2.0: 22402}
+
+4. income_numeric...
+    print(f"   Mean income: 
+\u20a6{df['income_numeric'].mean():,.0f}")
+  File 
+"C:\Python312\Lib\encodings\cp1252.py", 
+line 19, in encode
+    return codecs.charmap_encode(input,self
+.errors,encoding_table)[0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't 
+encode character '\u20a6' in position 16: 
+character maps to <undefined>

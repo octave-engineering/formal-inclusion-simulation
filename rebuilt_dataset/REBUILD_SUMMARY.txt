@@ -1,0 +1,51 @@
+
+DATASET REBUILD SUMMARY
+=======================
+
+Original Dataset:
+  - Rows: 85,341
+  - Columns: 52
+
+Circular Variables Removed: 11
+    - TransactionalAccount
+  - transactional_account_binary
+  - MobileMoneyUsage
+  - mobile_money_binary
+  - FinancialAgents
+  - financial_agents_binary
+  - access_agents
+  - access_agents_raw
+  - FinancialService
+  - FrequentyUsedTransactionMethod
+  - MoneyReceivingMethod
+
+Savings Features Added: 7
+    - Saves_Money
+  - Informal_Savings_Mode
+  - Regular_Saver
+  - Diverse_Savings_Reasons
+  - Old_Age_Planning
+  - Savings_Frequency_Score
+  - Savings_Behavior_Score
+
+Final Dataset:
+  - Rows: 85,341
+  - Columns: 39
+  - Features for modeling: 15
+
+Target Variable Distribution:
+  - Formally Included: 43,416 (50.9%)
+  - Not Included: 41,925 (49.1%)
+
+Output Files:
+  - rebuilt_dataset\modeling_dataset_non_circular.csv
+  - rebuilt_dataset\X_features.csv
+  - rebuilt_dataset\y_target.csv
+  - rebuilt_dataset\variable_list.csv
+  - rebuilt_dataset\dataset_summary_statistics.csv
+
+Next Steps:
+  1. Review the variable list and summary statistics
+  2. Run model training script with new dataset
+  3. Compare model performance with/without circular variables
+  4. Update dashboard with new model coefficients

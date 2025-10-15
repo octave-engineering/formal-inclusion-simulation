@@ -1,0 +1,14 @@
+{
+  "train_accuracy": 0.8020957161097169,
+  "test_accuracy": 0.7950343370311674,
+  "train_auc": 0.88017142665128,
+  "test_auc": 0.8746764663940322,
+  "cv_auc_mean": 0.8785955846821395,
+  "cv_auc_std": 0.003415069803587538,
+  "n_features": 66,
+  "n_base_features": 25,
+  "n_state_features": 36,
+  "n_train_samples": 22713,
+  "n_test_samples": 5679,
+  "baseline_inclusion_rate": 0.6120738236122851
+}

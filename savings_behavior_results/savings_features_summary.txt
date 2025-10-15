@@ -1,0 +1,22 @@
+SAVINGS BEHAVIOR FEATURES SUMMARY
+================================================================================
+
+        Saves_Money  Informal_Savings_Mode  Regular_Saver  Diverse_Savings_Reasons  Old_Age_Planning  Savings_Frequency_Score  Savings_Behavior_Score
+count  28400.000000           28400.000000   28400.000000             28400.000000      28400.000000             28400.000000            28400.000000
+mean       0.376725               0.222113       0.300599                 0.216479          0.855493                 1.075493                1.971408
+std        0.484574               0.415674       0.458526                 0.411852          0.351609                 1.695115                1.619005
+min        0.000000               0.000000       0.000000                 0.000000          0.000000                 0.000000                0.000000
+25%        0.000000               0.000000       0.000000                 0.000000          1.000000                 0.000000                1.000000
+50%        0.000000               0.000000       0.000000                 0.000000          1.000000                 0.000000                1.000000
+75%        1.000000               0.000000       1.000000                 0.000000          1.000000                 3.000000                4.000000
+max        1.000000               1.000000       1.000000                 1.000000          1.000000                 5.000000                5.000000
+
+Feature Definitions:
+--------------------------------------------------------------------------------
+Saves_Money: Binary indicator if person saved in past 12 months (SA1=1)
+Informal_Savings_Mode: Uses informal savings methods only (SA3a in 9-14)
+Regular_Saver: Saves regularly (daily/weekly/monthly/quarterly/annually)
+Diverse_Savings_Reasons: Saves for multiple reasons (SA5a=1 or 2)
+Savings_Buffer: Has at least 1 month of income saved (SA5c>=2)
+Old_Age_Planning: Has plan for old age financial security (SA7a not 11)
+Savings_Behavior_Score: Composite score (0-6) summing all above

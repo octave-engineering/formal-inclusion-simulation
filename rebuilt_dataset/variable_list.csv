@@ -1,0 +1,40 @@
+variable,dtype,non_null,unique_values,mean,category
+FormallyIncluded,int64,85341,2,0.5087355432910324,Target
+Gender,object,85341,2,,Demographics
+gender_male,int64,85341,2,0.49780293176784896,Demographics
+Age_numeric,float64,55847,84,36.957741687109426,Demographics
+Age_group,object,85341,7,,Demographics
+MaritalStatus,object,85341,8,,Demographics
+EducationLevel,object,85341,3,,Demographics
+education_numeric,int64,85341,3,1.6527108892560434,Demographics
+IncomeLevel,object,85341,22,,Economic
+income_numeric,float64,62592,18,34359.680286618095,Economic
+WealthQuintile,object,85341,6,,Economic
+wealth_numeric,float64,85333,5,2.6903894155836547,Economic
+PrimarySourceOfMoney,object,85341,20,,Economic
+Sector,object,85341,2,,Geography
+urban,int64,85341,2,0.36623662717802696,Geography
+region,object,85341,6,,Geography
+state,object,85341,37,,Geography
+region_North East,bool,85341,2,,Geography
+region_North West,bool,85341,2,,Geography
+region_South East,bool,85341,2,,Geography
+region_South South,bool,85341,2,,Geography
+region_South West,bool,85341,2,,Geography
+SavingFrequency,object,85341,8,,Behavioral_Existing
+savings_frequency_numeric,float64,83890,5,1.0138753129097628,Behavioral_Existing
+RunningOutOfMoneyFrequency (for 12 months),object,85341,2,,Behavioral_Existing
+runs_out_of_money,int64,85341,2,0.6626123434222706,Behavioral_Existing
+Coping_Mechanism_When_Out_Of_Money,object,85341,15,,Behavioral_Existing
+invest_money,object,85341,4,,Behavioral_Existing
+Saves_Money,float64,85341,2,0.1253676427508466,Behavioral_Savings
+Informal_Savings_Mode,float64,85341,2,0.0739152341781793,Behavioral_Savings
+Regular_Saver,float64,85341,2,0.10003398132199061,Behavioral_Savings
+Diverse_Savings_Reasons,float64,85341,2,0.0720404026200771,Behavioral_Savings
+Old_Age_Planning,float64,85341,2,0.28469317209781936,Behavioral_Savings
+Savings_Frequency_Score,float64,85341,6,0.3579053444417103,Behavioral_Savings
+Savings_Behavior_Score,float64,85341,6,0.656050432968913,Behavioral_Savings
+Year,int64,85341,3,2020.35260894529,Other
+year_2020,bool,85341,2,,Other
+year_2023,bool,85341,2,,Other
+respondent_serial,int64,85341,85233,1912203.6055940287,Other

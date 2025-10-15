@@ -34,7 +34,9 @@ function App() {
         if (xhr.status === 200) {
           try {
             const data = JSON.parse(xhr.responseText);
-            setPopulation(data.population);
+            // Handle both array format (old) and object format (new)
+            const populationData = Array.isArray(data) ? data : data.population;
+            setPopulation(populationData);
             setLoadingProgress(100);
           } catch (err) {
             console.error('Failed to parse population data:', err);
@@ -53,7 +55,7 @@ function App() {
   }, [mode, population, loadingPopulation]);
 
   return (
-    <div className="h-screen w-screen bg-bg-primary overflow-hidden flex flex-col">
+    <div className="min-h-screen w-screen bg-bg-primary flex flex-col">
       {/* Modern Header - Responsive */}
       <header className="bg-gradient-to-r from-brand-purple to-brand-indigo text-white shadow-card-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4">
@@ -83,7 +85,8 @@ function App() {
                   <Users size={16} className="sm:w-[18px] sm:h-[18px]" />
                   <span className="hidden sm:inline">Individual</span>
                 </button>
-                <button
+                {/* POLICY MODE - COMMENTED OUT */}
+                {/* <button
                   onClick={() => setMode('policy')}
                   className={`px-3 sm:px-5 py-2 sm:py-2.5 rounded-lg transition-all flex items-center gap-1 sm:gap-2 font-medium text-xs sm:text-sm ${
                     mode === 'policy' 
@@ -93,8 +96,9 @@ function App() {
                 >
                   <Target size={16} className="sm:w-[18px] sm:h-[18px]" />
                   <span className="hidden sm:inline">Policy</span>
-                </button>
-                <button
+                </button> */}
+                {/* INFO MODE - COMMENTED OUT */}
+                {/* <button
                   onClick={() => setMode('info')}
                   className={`px-3 sm:px-5 py-2 sm:py-2.5 rounded-lg transition-all flex items-center gap-1 sm:gap-2 font-medium text-xs sm:text-sm ${
                     mode === 'info' 
@@ -104,7 +108,7 @@ function App() {
                 >
                   <TrendingUp size={16} className="sm:w-[18px] sm:h-[18px]" />
                   <span className="hidden sm:inline">Info</span>
-                </button>
+                </button> */}
               </div>
             </div>
           </div>
