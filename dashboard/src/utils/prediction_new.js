@@ -52,7 +52,7 @@ export const FEATURE_WEIGHTS = {
   'Business_Income': -0.039844717532876044,
   'state_AKWA IBOM': -0.03871211707424101,
   'state_EDO': 0.031015715974729328,
-  'money_shortage_frequency': 0.02195617444223679,
+  'money_shortage_frequency': -0.02195617444223679,
   'state_OSUN': 0.020949293880559165,
   'state_FCT': 0.02029499715141017,
   'age_45-54': -0.014393164630684609,
