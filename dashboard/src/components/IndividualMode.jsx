@@ -653,7 +653,7 @@ export default function IndividualMode({ onReset }) {
                   <p className="text-xs font-semibold text-amber-900 mb-1">About Income Sources</p>
                   <p className="text-xs text-amber-800 leading-relaxed">
                     Each toggle represents a <strong>type</strong> of income, not the number of jobs. A person can have multiple businesses but it's still one "Business Income" type. 
-                    <strong className="block mt-1">Agricultural Income Effect:</strong> Base effect is negative (-0.30) due to irregular, cash-based income and limited access to financial infrastructure. However:
+                    <strong className="block mt-1">Agricultural Income Effect:</strong> Base effect is negative (-0.30) due to irregular, cash-based income and limited access to financial infrastructure.
                     {/* <strong className="block mt-1">• Agricultural + Formal Employment:</strong> Small positive boost (+0.01) - formal job helps
                     <br/>• <strong>Agricultural + Business:</strong> Negative interaction (-0.06) - likely subsistence farmers
                     <br/>• <strong>Agricultural + Urban location:</strong> Negative (-0.05) - signals lower socioeconomic status
@@ -759,7 +759,7 @@ export default function IndividualMode({ onReset }) {
             className="flex items-center gap-2 px-6 py-3 bg-white border-2 border-border-medium rounded-xl text-text-primary font-medium hover:bg-bg-secondary hover:border-accent-primary transition-all shadow-sm hover:shadow-md"
           >
             <RotateCcw className="w-4 h-4" />
-            Reset to Survey Averages
+            Reset
           </button>
         </div>
         </div>

@@ -321,7 +321,7 @@ export default function IndividualMode({ onReset }) {
             className="group flex items-center gap-2 px-6 py-3 bg-white border border-border-medium rounded-xl hover:border-accent-primary hover:bg-accent-primary-light hover:shadow-card transition-all font-medium text-text-primary"
           >
             <RotateCcw className="w-4 h-4 group-hover:rotate-180 transition-transform duration-300" />
-            Reset to Survey Averages
+            Reset
           </button>
         </div>
         </div>
