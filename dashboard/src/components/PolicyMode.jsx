@@ -292,77 +292,77 @@ export default function PolicyMode({ population }) {
   const newlyIncludedNational = projectedNational - baselineNational;
   
   const impactColor = deltaPercentagePoints >= 5 ? 'text-brand-green' : deltaPercentagePoints >= 1 ? 'text-accent-primary' : 'text-text-secondary';
-  const impactBg = deltaPercentagePoints >= 5 ? 'from-brand-green to-green-400' : deltaPercentagePoints >= 1 ? 'from-accent-primary to-accent-secondary' : 'from-gray-400 to-gray-500';
+  const impactBg = deltaPercentagePoints >= 5 ? 'bg-brand-green' : deltaPercentagePoints >= 1 ? 'bg-accent-primary' : 'bg-gray-400';
 
   return (
     <div className="min-h-screen bg-bg-primary">
       {/* Sticky Results Header */}
-      <div className="sticky top-0 z-30 bg-bg-primary pt-6 pb-2">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="bg-gradient-to-br from-white to-bg-secondary shadow-card-lg border border-border-light rounded-2xl p-6 md:p-8 relative">
+      <div className="sticky top-0 z-30 bg-bg-primary pt-3 md:pt-6 pb-1 md:pb-2">
+        <div className="max-w-7xl mx-auto px-3 md:px-6">
+          <div className="bg-gradient-to-br from-white to-bg-secondary shadow-card-lg border border-border-light rounded-xl md:rounded-2xl p-4 md:p-6 lg:p-8 relative">
             {isSimulating && (
-              <div className="absolute top-4 right-4 flex items-center gap-2 text-sm text-accent-primary">
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-accent-primary"></div>
-                <span>Simulating...</span>
+              <div className="absolute top-2 right-2 md:top-4 md:right-4 flex items-center gap-1 md:gap-2 text-xs md:text-sm text-accent-primary">
+                <div className="animate-spin rounded-full h-3 w-3 md:h-4 md:w-4 border-b-2 border-accent-primary"></div>
+                <span className="hidden sm:inline">Simulating...</span>
               </div>
             )}
           
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
             
             {/* Baseline Rate */}
             <div className="text-center">
-              <div className="text-sm font-medium text-text-secondary uppercase tracking-wide mb-2">Current Rate</div>
-              <div className="text-4xl font-bold text-text-primary">64%</div>
-              <div className="text-sm text-text-tertiary mt-1">{baselineNational.toLocaleString()} people</div>
+              <div className="text-[10px] sm:text-xs md:text-sm font-medium text-text-secondary uppercase tracking-wide mb-1 md:mb-2">Current</div>
+              <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-text-primary">64%</div>
+              <div className="text-[10px] sm:text-xs md:text-sm text-text-tertiary mt-0.5 md:mt-1 hidden sm:block">{baselineNational.toLocaleString()} people</div>
             </div>
 
             {/* Projected Rate */}
             <div className="text-center">
-              <div className="text-sm font-medium text-text-secondary uppercase tracking-wide mb-2">Projected Rate</div>
-              <div className={`text-4xl font-bold ${impactColor}`}>{projectedRate.toFixed(1)}%</div>
-              <div className="text-sm text-text-tertiary mt-1">{projectedNational.toLocaleString()} people</div>
+              <div className="text-[10px] sm:text-xs md:text-sm font-medium text-text-secondary uppercase tracking-wide mb-1 md:mb-2">Projected</div>
+              <div className={`text-2xl sm:text-3xl md:text-4xl font-bold ${impactColor}`}>{projectedRate.toFixed(1)}%</div>
+              <div className="text-[10px] sm:text-xs md:text-sm text-text-tertiary mt-0.5 md:mt-1 hidden sm:block">{projectedNational.toLocaleString()} people</div>
             </div>
 
             {/* Impact */}
             <div className="text-center">
-              <div className="text-sm font-medium text-text-secondary uppercase tracking-wide mb-2">Change</div>
-              <div className="flex items-center justify-center gap-2">
+              <div className="text-[10px] sm:text-xs md:text-sm font-medium text-text-secondary uppercase tracking-wide mb-1 md:mb-2">Change</div>
+              <div className="flex items-center justify-center gap-1 md:gap-2">
                 {deltaPercentagePoints > 0 ? (
-                  <ArrowUp className={`w-6 h-6 ${impactColor}`} />
+                  <ArrowUp className={`w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 ${impactColor}`} />
                 ) : deltaPercentagePoints < 0 ? (
-                  <ArrowDown className="w-6 h-6 text-brand-red" />
+                  <ArrowDown className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-brand-red" />
                 ) : null}
-                <div className={`text-4xl font-bold ${impactColor}`}>
+                <div className={`text-2xl sm:text-3xl md:text-4xl font-bold ${impactColor}`}>
                   {deltaPercentagePoints >= 0 ? '+' : ''}{deltaPercentagePoints.toFixed(1)}pp
                 </div>
               </div>
-              <div className="text-xs text-text-tertiary mt-1">Percentage points</div>
+              <div className="text-[9px] sm:text-[10px] md:text-xs text-text-tertiary mt-0.5 md:mt-1 hidden sm:block">Percentage points</div>
             </div>
             
             {/* Newly Included */}
             <div className="text-center">
-              <div className="text-sm font-medium text-text-secondary uppercase tracking-wide mb-2">Newly Included</div>
-              <div className={`text-4xl font-bold ${impactColor}`}>
+              <div className="text-[10px] sm:text-xs md:text-sm font-medium text-text-secondary uppercase tracking-wide mb-1 md:mb-2">New</div>
+              <div className={`text-2xl sm:text-3xl md:text-4xl font-bold ${impactColor}`}>
                 {formatMillions(newlyIncludedNational)}
               </div>
-              <div className="text-xs text-text-tertiary mt-1">
-                <div className="font-semibold text-text-primary">{newlyIncludedNational.toLocaleString()} Nigerians</div>
-                <div className="text-[10px] mt-0.5">{policyResults.impact.percentAffected.toFixed(2)}% of adults</div>
+              <div className="text-[10px] sm:text-xs text-text-tertiary mt-0.5 md:mt-1">
+                <div className="font-semibold text-text-primary hidden md:block">{newlyIncludedNational.toLocaleString()} Nigerians</div>
+                <div className="text-[9px] sm:text-[10px] mt-0.5 hidden sm:block">{policyResults.impact.percentAffected.toFixed(2)}% of adults</div>
               </div>
             </div>
           </div>
 
           {/* Progress Bar */}
-          <div className="mt-6">
-            <div className="relative h-4 bg-border-light rounded-full overflow-hidden">
+          <div className="mt-3 md:mt-6">
+            <div className="relative h-3 md:h-4 bg-border-light rounded-full overflow-hidden">
               <div 
-                className={`absolute top-0 left-0 h-full bg-gradient-to-r ${impactBg} rounded-full transition-all duration-700`}
+                className={`absolute top-0 left-0 h-full ${impactBg} rounded-full transition-all duration-700`}
                 style={{ width: `${Math.min(100, projectedRate)}%` }}
               />
             </div>
-            <div className="flex justify-between text-xs text-text-tertiary mt-2">
+            <div className="flex justify-between text-[10px] md:text-xs text-text-tertiary mt-1 md:mt-2">
               <span>0%</span>
-              <span>50%</span>
+              <span className="hidden sm:inline">50%</span>
               <span>100%</span>
             </div>
           </div>
@@ -371,9 +371,29 @@ export default function PolicyMode({ population }) {
       </div>
 
       {/* Scrollable Content */}
-      <div className="max-w-7xl mx-auto px-6 pb-6 space-y-6">
+      <div className="max-w-7xl mx-auto px-3 md:px-6 pb-6 space-y-4 md:space-y-6">
         {/* Policy Controls - Top 4 High-Impact Levers */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="relative">
+          {/* Loading Overlay */}
+          {isSimulating && (
+            <div className="absolute inset-0 bg-white/90 backdrop-blur-sm z-40 rounded-2xl flex items-center justify-center transition-opacity duration-200">
+              <div className="flex flex-col items-center gap-3 md:gap-4 bg-white p-6 md:p-8 rounded-xl md:rounded-2xl shadow-2xl border-2 border-accent-primary/20">
+                <div className="relative">
+                  {/* Outer spinning ring */}
+                  <div className="animate-spin rounded-full h-12 w-12 md:h-16 md:w-16 border-3 md:border-4 border-accent-primary border-t-transparent"></div>
+                  {/* Inner pulse */}
+                  <div className="absolute inset-2 rounded-full bg-accent-primary/10 animate-pulse"></div>
+                </div>
+                <div className="text-center">
+                  <p className="text-sm md:text-base font-bold text-accent-primary">Simulating Impact...</p>
+                  <p className="text-[11px] md:text-xs text-text-tertiary mt-1 md:mt-1.5">Processing 28,392 records</p>
+                  <p className="text-[10px] text-text-tertiary/70 mt-0.5 md:mt-1">Please wait...</p>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          <div className={`grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 ${isSimulating ? 'pointer-events-none opacity-70' : ''}`}>
           
           {/* NIN Enrollment Drive */}
           <PolicyCard icon={CreditCard} title="National ID (NIN) Enrollment" color="from-emerald-500 to-teal-500">
@@ -488,7 +508,8 @@ export default function PolicyMode({ population }) {
               </p>
             </div>
           </PolicyCard>
-        </div>
+          </div>
+        </div> {/* End relative wrapper for loading overlay */}
 
         {/* Individual Contributions Breakdown */}
         {deltaPercentagePoints > 0 && (
@@ -506,7 +527,7 @@ export default function PolicyMode({ population }) {
                   <div className="flex-1">
                     <div className="relative h-8 bg-emerald-100 rounded-lg overflow-hidden">
                       <div 
-                        className="absolute top-0 left-0 h-full bg-gradient-to-r from-emerald-500 to-teal-500 flex items-center justify-end pr-2"
+                        className="absolute top-0 left-0 h-full bg-emerald-500 flex items-center justify-end pr-2"
                         style={{ width: `${(policyResults.contributions.NIN / deltaPercentagePoints) * 100}%` }}
                       >
                         <span className="text-xs font-bold text-white">+{policyResults.contributions.NIN.toFixed(2)}pp</span>
@@ -526,7 +547,7 @@ export default function PolicyMode({ population }) {
                   <div className="flex-1">
                     <div className="relative h-8 bg-blue-100 rounded-lg overflow-hidden">
                       <div 
-                        className="absolute top-0 left-0 h-full bg-gradient-to-r from-blue-500 to-indigo-500 flex items-center justify-end pr-2"
+                        className="absolute top-0 left-0 h-full bg-blue-500 flex items-center justify-end pr-2"
                         style={{ width: `${(policyResults.contributions.Digital / deltaPercentagePoints) * 100}%` }}
                       >
                         <span className="text-xs font-bold text-white">+{policyResults.contributions.Digital.toFixed(2)}pp</span>
@@ -546,7 +567,7 @@ export default function PolicyMode({ population }) {
                   <div className="flex-1">
                     <div className="relative h-8 bg-purple-100 rounded-lg overflow-hidden">
                       <div 
-                        className="absolute top-0 left-0 h-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-end pr-2"
+                        className="absolute top-0 left-0 h-full bg-purple-500 flex items-center justify-end pr-2"
                         style={{ width: `${(policyResults.contributions.Education / deltaPercentagePoints) * 100}%` }}
                       >
                         <span className="text-xs font-bold text-white">+{policyResults.contributions.Education.toFixed(2)}pp</span>
@@ -566,7 +587,7 @@ export default function PolicyMode({ population }) {
                   <div className="flex-1">
                     <div className="relative h-8 bg-orange-100 rounded-lg overflow-hidden">
                       <div 
-                        className="absolute top-0 left-0 h-full bg-gradient-to-r from-orange-500 to-red-500 flex items-center justify-end pr-2"
+                        className="absolute top-0 left-0 h-full bg-orange-500 flex items-center justify-end pr-2"
                         style={{ width: `${(policyResults.contributions.Infrastructure / deltaPercentagePoints) * 100}%` }}
                       >
                         <span className="text-xs font-bold text-white">+{policyResults.contributions.Infrastructure.toFixed(2)}pp</span>
