@@ -1,15 +1,25 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import { TrendingUp, Users, GraduationCap, Building2, Smartphone, ArrowUp, ArrowDown, RotateCcw, AlertCircle, CreditCard } from 'lucide-react';
-import { simulatePolicyImpact, EFINA_BASELINE_RATE, CALIBRATION_FACTOR } from '../utils/policyPrediction';
+import { CreditCard, Smartphone, GraduationCap, Building2, ArrowUp, ArrowDown, RotateCcw, AlertCircle } from 'lucide-react';
+import { simulatePolicyImpact } from '../utils/policyPrediction';
 
-// Nigeria's adult population (18+ years) - 2023 estimate
-const NIGERIA_ADULT_POPULATION = 110_000_000; // ~110 million adults
+// Nigeria's adult population (18+) - approximately 110 million
+const NIGERIA_ADULT_POPULATION = 110_000_000;
+
+// EFInA calibrated baseline rate
+const EFINA_BASELINE_RATE = 64.0;
+
+const CALIBRATION_FACTOR = 1.05; // To align with EFInA 64% baseline
+
+// Debounce delay in milliseconds (reduced for faster response)
+const DEBOUNCE_DELAY = 300;
 
 export default function PolicyMode({ population }) {
   const [policyInputs, setPolicyInputs] = useState(null);
+  const [debouncedPolicyInputs, setDebouncedPolicyInputs] = useState(null);
   const [baselineStats, setBaselineStats] = useState(null);
   const [isSimulating, setIsSimulating] = useState(false);
+  const debounceTimer = useRef(null);
   
   // Calculate scaling factor from sample to national population
   const scalingFactor = useMemo(() => {
@@ -65,6 +75,7 @@ export default function PolicyMode({ population }) {
         };
         
         setPolicyInputs(policyInputsData);
+        setDebouncedPolicyInputs(policyInputsData);
         
       } catch (error) {
         console.error('Error calculating baseline stats:', error);
@@ -72,15 +83,37 @@ export default function PolicyMode({ population }) {
     }
   }, [population]);
 
+  // Debounce policy inputs to reduce simulation frequency
+  useEffect(() => {
+    if (!policyInputs) return;
+    
+    // Clear existing timer
+    if (debounceTimer.current) {
+      clearTimeout(debounceTimer.current);
+    }
+    
+    // Set new timer
+    debounceTimer.current = setTimeout(() => {
+      setDebouncedPolicyInputs(policyInputs);
+    }, DEBOUNCE_DELAY);
+    
+    // Cleanup
+    return () => {
+      if (debounceTimer.current) {
+        clearTimeout(debounceTimer.current);
+      }
+    };
+  }, [policyInputs]);
+
   // Simulate policy impact with debouncing for performance
   const policyResults = useMemo(() => {
-    if (!population || !baselineStats || !policyInputs) return null;
+    if (!population || !baselineStats || !debouncedPolicyInputs) return null;
 
     // Check if any policies have changed from baseline
-    const ninDelta = Math.abs(policyInputs.NIN_Target - baselineStats.NIN_Current);
-    const digitalDelta = Math.abs(policyInputs.Digital_Target - baselineStats.Digital_Current);
-    const educationDelta = Math.abs(policyInputs.Education_Target - baselineStats.Education_Current);
-    const infraDelta = Math.abs(policyInputs.Infrastructure_Target - baselineStats.Infrastructure_Current);
+    const ninDelta = Math.abs(debouncedPolicyInputs.NIN_Target - baselineStats.NIN_Current);
+    const digitalDelta = Math.abs(debouncedPolicyInputs.Digital_Target - baselineStats.Digital_Current);
+    const educationDelta = Math.abs(debouncedPolicyInputs.Education_Target - baselineStats.Education_Current);
+    const infraDelta = Math.abs(debouncedPolicyInputs.Infrastructure_Target - baselineStats.Infrastructure_Current);
     
     const hasChanges = 
       ninDelta > 0.1 ||
@@ -118,61 +151,100 @@ export default function PolicyMode({ population }) {
     setIsSimulating(true);
     
     const policyChanges = {
-      NIN_Target: policyInputs.NIN_Target,
-      Digital_Target: policyInputs.Digital_Target,
-      Education_Target: policyInputs.Education_Target,
-      Infrastructure_Target: policyInputs.Infrastructure_Target,
+      NIN_Target: debouncedPolicyInputs.NIN_Target,
+      Digital_Target: debouncedPolicyInputs.Digital_Target,
+      Education_Target: debouncedPolicyInputs.Education_Target,
+      Infrastructure_Target: debouncedPolicyInputs.Infrastructure_Target,
     };
 
     const results = simulatePolicyImpact(population, policyChanges);
     
-    // Calculate individual contributions by simulating each policy change separately
-    const baselineNoChanges = simulatePolicyImpact(population, {
-      NIN_Target: baselineStats.NIN_Current,
-      Digital_Target: baselineStats.Digital_Current,
-      Education_Target: baselineStats.Education_Current,
-      Infrastructure_Target: baselineStats.Infrastructure_Current,
-    });
+    // Calculate marginal contributions - only if policies actually changed from baseline
+    const ninChanged = Math.abs(debouncedPolicyInputs.NIN_Target - baselineStats.NIN_Current) > 0.1;
+    const digitalChanged = Math.abs(debouncedPolicyInputs.Digital_Target - baselineStats.Digital_Current) > 0.01;
+    const educationChanged = Math.abs(debouncedPolicyInputs.Education_Target - baselineStats.Education_Current) > 0.01;
+    const infraChanged = Math.abs(debouncedPolicyInputs.Infrastructure_Target - baselineStats.Infrastructure_Current) > 0.1;
     
-    const ninOnly = simulatePolicyImpact(population, {
-      NIN_Target: policyInputs.NIN_Target,
-      Digital_Target: baselineStats.Digital_Current,
-      Education_Target: baselineStats.Education_Current,
-      Infrastructure_Target: baselineStats.Infrastructure_Current,
-    });
+    // Calculate marginal contribution: impact with all policies EXCEPT this one
+    let ninContribution = 0;
+    let digitalContribution = 0;
+    let educationContribution = 0;
+    let infraContribution = 0;
     
-    const digitalOnly = simulatePolicyImpact(population, {
-      NIN_Target: baselineStats.NIN_Current,
-      Digital_Target: policyInputs.Digital_Target,
-      Education_Target: baselineStats.Education_Current,
-      Infrastructure_Target: baselineStats.Infrastructure_Current,
-    });
-    
-    const educationOnly = simulatePolicyImpact(population, {
-      NIN_Target: baselineStats.NIN_Current,
-      Digital_Target: baselineStats.Digital_Current,
-      Education_Target: policyInputs.Education_Target,
-      Infrastructure_Target: baselineStats.Infrastructure_Current,
-    });
-    
-    const infraOnly = simulatePolicyImpact(population, {
-      NIN_Target: baselineStats.NIN_Current,
-      Digital_Target: baselineStats.Digital_Current,
-      Education_Target: baselineStats.Education_Current,
-      Infrastructure_Target: policyInputs.Infrastructure_Target,
-    });
+    if (ninChanged || digitalChanged || educationChanged || infraChanged) {
+      // Baseline with no changes
+      const baseline = simulatePolicyImpact(population, {
+        NIN_Target: baselineStats.NIN_Current,
+        Digital_Target: baselineStats.Digital_Current,
+        Education_Target: baselineStats.Education_Current,
+        Infrastructure_Target: baselineStats.Infrastructure_Current,
+      });
+      
+      // If only NIN changed, its contribution is the full effect
+      if (ninChanged && !digitalChanged && !educationChanged && !infraChanged) {
+        ninContribution = results.impact.deltaPercentagePoints;
+      } else if (ninChanged) {
+        // Calculate effect WITHOUT NIN (all others applied)
+        const withoutNIN = simulatePolicyImpact(population, {
+          NIN_Target: baselineStats.NIN_Current,
+          Digital_Target: debouncedPolicyInputs.Digital_Target,
+          Education_Target: debouncedPolicyInputs.Education_Target,
+          Infrastructure_Target: debouncedPolicyInputs.Infrastructure_Target,
+        });
+        ninContribution = results.impact.deltaPercentagePoints - withoutNIN.impact.deltaPercentagePoints;
+      }
+      
+      // Similar for Digital
+      if (digitalChanged && !ninChanged && !educationChanged && !infraChanged) {
+        digitalContribution = results.impact.deltaPercentagePoints;
+      } else if (digitalChanged) {
+        const withoutDigital = simulatePolicyImpact(population, {
+          NIN_Target: debouncedPolicyInputs.NIN_Target,
+          Digital_Target: baselineStats.Digital_Current,
+          Education_Target: debouncedPolicyInputs.Education_Target,
+          Infrastructure_Target: debouncedPolicyInputs.Infrastructure_Target,
+        });
+        digitalContribution = results.impact.deltaPercentagePoints - withoutDigital.impact.deltaPercentagePoints;
+      }
+      
+      // Education
+      if (educationChanged && !ninChanged && !digitalChanged && !infraChanged) {
+        educationContribution = results.impact.deltaPercentagePoints;
+      } else if (educationChanged) {
+        const withoutEducation = simulatePolicyImpact(population, {
+          NIN_Target: debouncedPolicyInputs.NIN_Target,
+          Digital_Target: debouncedPolicyInputs.Digital_Target,
+          Education_Target: baselineStats.Education_Current,
+          Infrastructure_Target: debouncedPolicyInputs.Infrastructure_Target,
+        });
+        educationContribution = results.impact.deltaPercentagePoints - withoutEducation.impact.deltaPercentagePoints;
+      }
+      
+      // Infrastructure
+      if (infraChanged && !ninChanged && !digitalChanged && !educationChanged) {
+        infraContribution = results.impact.deltaPercentagePoints;
+      } else if (infraChanged) {
+        const withoutInfra = simulatePolicyImpact(population, {
+          NIN_Target: debouncedPolicyInputs.NIN_Target,
+          Digital_Target: debouncedPolicyInputs.Digital_Target,
+          Education_Target: debouncedPolicyInputs.Education_Target,
+          Infrastructure_Target: baselineStats.Infrastructure_Current,
+        });
+        infraContribution = results.impact.deltaPercentagePoints - withoutInfra.impact.deltaPercentagePoints;
+      }
+    }
     
     results.contributions = {
-      NIN: ninOnly.impact.deltaPercentagePoints,
-      Digital: digitalOnly.impact.deltaPercentagePoints,
-      Education: educationOnly.impact.deltaPercentagePoints,
-      Infrastructure: infraOnly.impact.deltaPercentagePoints
+      NIN: ninContribution,
+      Digital: digitalContribution,
+      Education: educationContribution,
+      Infrastructure: infraContribution
     };
     
     setIsSimulating(false);
     
     return results;
-  }, [population, baselineStats, policyInputs]);
+  }, [population, baselineStats, debouncedPolicyInputs]);
 
   const updatePolicy = (key, value) => {
     setPolicyInputs(prev => ({ ...prev, [key]: value }));
