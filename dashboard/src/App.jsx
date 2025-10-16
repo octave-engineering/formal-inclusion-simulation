@@ -86,7 +86,7 @@ function App() {
                   <span className="hidden sm:inline">Individual</span>
                 </button>
                 {/* POLICY MODE - COMMENTED OUT */}
-                {/* <button
+                <button
                   onClick={() => setMode('policy')}
                   className={`px-3 sm:px-5 py-2 sm:py-2.5 rounded-lg transition-all flex items-center gap-1 sm:gap-2 font-medium text-xs sm:text-sm ${
                     mode === 'policy' 
@@ -96,7 +96,7 @@ function App() {
                 >
                   <Target size={16} className="sm:w-[18px] sm:h-[18px]" />
                   <span className="hidden sm:inline">Policy</span>
-                </button> */}
+                </button>
                 {/* INFO MODE - COMMENTED OUT */}
                 {/* <button
                   onClick={() => setMode('info')}
