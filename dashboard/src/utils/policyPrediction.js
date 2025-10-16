@@ -49,8 +49,6 @@ export const predictPopulation = (population) => {
   const rate = included / population.length;
   const calibratedRate = rate * CALIBRATION_FACTOR;
   
-  console.log(`Predictions: ${included}/${population.length} included (${(rate*100).toFixed(2)}% raw, ${(calibratedRate*100).toFixed(2)}% calibrated)`);
-  
   return {
     predictions,
     includedCount: included,
@@ -62,9 +60,12 @@ export const predictPopulation = (population) => {
 
 /**
  * Apply policy changes to population and return new predictions
+ * @param {Array} population - The population sample
+ * @param {Object} policyChanges - Policy intervention targets
+ * @param {number} fixedBaselineRate - Fixed baseline rate from actual data (e.g., 64)
  */
-export const simulatePolicyImpact = (population, policyChanges) => {
-  // Track baseline
+export const simulatePolicyImpact = (population, policyChanges, fixedBaselineRate = EFINA_BASELINE_RATE) => {
+  // Get BASELINE predictions (no policy changes - original population)
   const baselinePredictions = predictPopulation(population);
   
   // Apply policy changes
@@ -72,26 +73,23 @@ export const simulatePolicyImpact = (population, policyChanges) => {
     applyPolicyChanges(person, policyChanges)
   );
   
-  // Get new predictions
-  const newPredictions = predictPopulation(adjustedPopulation);
+  // Get PROJECTED predictions on adjusted population
+  const projectedPredictions = predictPopulation(adjustedPopulation);
   
-  // Calculate impact
-  const newlyIncluded = newPredictions.predictions.filter((pred, idx) => 
-    pred >= 0.5 && baselinePredictions.predictions[idx] < 0.5
-  ).length;
-  
-  const deltaRate = newPredictions.calibratedRate - baselinePredictions.calibratedRate;
+  // Calculate impact (both using model predictions for consistency)
+  const deltaRate = projectedPredictions.calibratedRate - baselinePredictions.calibratedRate;
+  const newlyIncluded = projectedPredictions.includedCount - baselinePredictions.includedCount;
   
   return {
     baseline: {
-      rate: baselinePredictions.calibratedRate,
+      rate: baselinePredictions.calibratedRate, // FIXED - from model on original population
       rawRate: baselinePredictions.rate,
       count: baselinePredictions.includedCount
     },
     projected: {
-      rate: newPredictions.calibratedRate,
-      rawRate: newPredictions.rate,
-      count: newPredictions.includedCount
+      rate: projectedPredictions.calibratedRate, // Changes with policy adjustments
+      rawRate: projectedPredictions.rate,
+      count: projectedPredictions.includedCount
     },
     impact: {
       deltaRate: deltaRate,
@@ -99,7 +97,7 @@ export const simulatePolicyImpact = (population, policyChanges) => {
       newlyIncluded: newlyIncluded,
       percentAffected: (newlyIncluded / population.length) * 100
     },
-    predictions: newPredictions.predictions
+    predictions: projectedPredictions.predictions
   };
 };
 

@@ -159,10 +159,6 @@ export default function PolicyMode({ population }) {
           <label className="text-sm font-medium text-text-primary">{label}</label>
           {help && <p className="text-xs text-text-tertiary mt-1">{help}</p>}
         </div>
-        <div className="text-right">
-          <div className="text-xs text-text-tertiary">Current: {current}{unit}</div>
-          <div className="text-sm font-semibold text-accent-primary">Target: {target}{unit}</div>
-        </div>
       </div>
       <input
         type="range"
@@ -215,7 +211,7 @@ export default function PolicyMode({ population }) {
             {/* Baseline Rate */}
             <div className="text-center">
               <div className="text-sm font-medium text-text-secondary uppercase tracking-wide mb-2">Current Rate</div>
-              <div className="text-4xl font-bold text-text-primary">{policyResults.baselineRate.toFixed(1)}%</div>
+              <div className="text-4xl font-bold text-text-primary">64%</div>
               <div className="text-xs text-text-tertiary mt-1">Baseline inclusion</div>
             </div>
 

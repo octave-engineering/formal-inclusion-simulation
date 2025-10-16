@@ -3,17 +3,24 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { TrendingUp, Users, GraduationCap, Building2, Smartphone, ArrowUp, ArrowDown, RotateCcw, AlertCircle, CreditCard } from 'lucide-react';
 import { simulatePolicyImpact, EFINA_BASELINE_RATE, CALIBRATION_FACTOR } from '../utils/policyPrediction';
 
+// Nigeria's adult population (18+ years) - 2023 estimate
+const NIGERIA_ADULT_POPULATION = 110_000_000; // ~110 million adults
+
 export default function PolicyMode({ population }) {
   const [policyInputs, setPolicyInputs] = useState(null);
   const [baselineStats, setBaselineStats] = useState(null);
   const [isSimulating, setIsSimulating] = useState(false);
+  
+  // Calculate scaling factor from sample to national population
+  const scalingFactor = useMemo(() => {
+    if (!population || population.length === 0) return 1;
+    return NIGERIA_ADULT_POPULATION / population.length;
+  }, [population]);
 
   // Calculate baseline stats from population
   useEffect(() => {
     if (population && population.length > 0) {
       try {
-        console.log('Calculating baseline from', population.length, 'records...');
-        
         // Key policy-relevant features
         const hasNIN = (population.filter(p => p.Has_NIN === 1).length / population.length) * 100;
         const digitalAvg = population.reduce((sum, p) => sum + (p.Digital_Access_Index || 0), 0) / population.length;
@@ -47,7 +54,6 @@ export default function PolicyMode({ population }) {
           Currently_Included: included,
         };
 
-        console.log('Baseline calculated:', baselineData);
         setBaselineStats(baselineData);
 
         // Initialize policy inputs at current baseline
@@ -68,13 +74,7 @@ export default function PolicyMode({ population }) {
 
   // Simulate policy impact with debouncing for performance
   const policyResults = useMemo(() => {
-    if (!population || !baselineStats || !policyInputs) {
-      console.log('Missing data:', { hasPopulation: !!population, hasBaseline: !!baselineStats, hasInputs: !!policyInputs });
-      return null;
-    }
-
-    console.log('Policy Inputs:', policyInputs);
-    console.log('Baseline Stats:', baselineStats);
+    if (!population || !baselineStats || !policyInputs) return null;
 
     // Check if any policies have changed from baseline
     const ninDelta = Math.abs(policyInputs.NIN_Target - baselineStats.NIN_Current);
@@ -82,15 +82,11 @@ export default function PolicyMode({ population }) {
     const educationDelta = Math.abs(policyInputs.Education_Target - baselineStats.Education_Current);
     const infraDelta = Math.abs(policyInputs.Infrastructure_Target - baselineStats.Infrastructure_Current);
     
-    console.log('Deltas:', { ninDelta, digitalDelta, educationDelta, infraDelta });
-    
     const hasChanges = 
       ninDelta > 0.1 ||
       digitalDelta > 0.01 ||
       educationDelta > 0.01 ||
       infraDelta > 0.1;
-
-    console.log('Has changes:', hasChanges);
 
     // If no policy changes, return baseline stats
     if (!hasChanges) {
@@ -108,12 +104,17 @@ export default function PolicyMode({ population }) {
           deltaPercentagePoints: 0,
           newlyIncluded: 0,
           percentAffected: 0
+        },
+        contributions: {
+          NIN: 0,
+          Digital: 0,
+          Education: 0,
+          Infrastructure: 0
         }
       };
     }
 
     // Run simulation with policy changes
-    console.log('Running simulation with changes...');
     setIsSimulating(true);
     
     const policyChanges = {
@@ -124,19 +125,57 @@ export default function PolicyMode({ population }) {
     };
 
     const results = simulatePolicyImpact(population, policyChanges);
+    
+    // Calculate individual contributions by simulating each policy change separately
+    const baselineNoChanges = simulatePolicyImpact(population, {
+      NIN_Target: baselineStats.NIN_Current,
+      Digital_Target: baselineStats.Digital_Current,
+      Education_Target: baselineStats.Education_Current,
+      Infrastructure_Target: baselineStats.Infrastructure_Current,
+    });
+    
+    const ninOnly = simulatePolicyImpact(population, {
+      NIN_Target: policyInputs.NIN_Target,
+      Digital_Target: baselineStats.Digital_Current,
+      Education_Target: baselineStats.Education_Current,
+      Infrastructure_Target: baselineStats.Infrastructure_Current,
+    });
+    
+    const digitalOnly = simulatePolicyImpact(population, {
+      NIN_Target: baselineStats.NIN_Current,
+      Digital_Target: policyInputs.Digital_Target,
+      Education_Target: baselineStats.Education_Current,
+      Infrastructure_Target: baselineStats.Infrastructure_Current,
+    });
+    
+    const educationOnly = simulatePolicyImpact(population, {
+      NIN_Target: baselineStats.NIN_Current,
+      Digital_Target: baselineStats.Digital_Current,
+      Education_Target: policyInputs.Education_Target,
+      Infrastructure_Target: baselineStats.Infrastructure_Current,
+    });
+    
+    const infraOnly = simulatePolicyImpact(population, {
+      NIN_Target: baselineStats.NIN_Current,
+      Digital_Target: baselineStats.Digital_Current,
+      Education_Target: baselineStats.Education_Current,
+      Infrastructure_Target: policyInputs.Infrastructure_Target,
+    });
+    
+    results.contributions = {
+      NIN: ninOnly.impact.deltaPercentagePoints,
+      Digital: digitalOnly.impact.deltaPercentagePoints,
+      Education: educationOnly.impact.deltaPercentagePoints,
+      Infrastructure: infraOnly.impact.deltaPercentagePoints
+    };
+    
     setIsSimulating(false);
     
-    console.log('Simulation results:', results);
     return results;
   }, [population, baselineStats, policyInputs]);
 
   const updatePolicy = (key, value) => {
-    console.log(`Updating ${key} to ${value}`);
-    setPolicyInputs(prev => {
-      const updated = { ...prev, [key]: value };
-      console.log('Updated policy inputs:', updated);
-      return updated;
-    });
+    setPolicyInputs(prev => ({ ...prev, [key]: value }));
   };
 
   const resetPolicies = useCallback(() => {
@@ -181,8 +220,7 @@ export default function PolicyMode({ population }) {
           {help && <p className="text-xs text-text-tertiary mt-1">{help}</p>}
         </div>
         <div className="text-right">
-          <div className="text-xs text-text-tertiary">Current: {current}{unit}</div>
-          <div className="text-sm font-semibold text-accent-primary">Target: {target}{unit}</div>
+          <div className="text-sm font-semibold text-accent-primary">{target}{unit}</div>
         </div>
       </div>
       <input
@@ -233,37 +271,56 @@ export default function PolicyMode({ population }) {
     </div>
   );
 
+  // Helper function to format millions
+  const formatMillions = (num) => {
+    const millions = num / 1_000_000;
+    if (millions >= 1) {
+      return `${millions.toFixed(1)}M`;
+    }
+    const thousands = num / 1_000;
+    return `${thousands.toFixed(0)}K`;
+  };
+  
+  // Fixed baseline and calculated projected rate
+  const FIXED_BASELINE_RATE = 64.0; // EFInA calibrated baseline
   const deltaPercentagePoints = policyResults.impact.deltaPercentagePoints;
+  const projectedRate = FIXED_BASELINE_RATE + deltaPercentagePoints; // 64% + delta
+  
+  // Calculate national population counts
+  const baselineNational = Math.round((FIXED_BASELINE_RATE / 100) * NIGERIA_ADULT_POPULATION);
+  const projectedNational = Math.round((projectedRate / 100) * NIGERIA_ADULT_POPULATION);
+  const newlyIncludedNational = projectedNational - baselineNational;
+  
   const impactColor = deltaPercentagePoints >= 5 ? 'text-brand-green' : deltaPercentagePoints >= 1 ? 'text-accent-primary' : 'text-text-secondary';
   const impactBg = deltaPercentagePoints >= 5 ? 'from-brand-green to-green-400' : deltaPercentagePoints >= 1 ? 'from-accent-primary to-accent-secondary' : 'from-gray-400 to-gray-500';
 
   return (
     <div className="min-h-screen bg-bg-primary">
-      <div className="max-w-7xl mx-auto p-6 space-y-6">
-        
-        {/* Results Header */}
-        <div className="bg-gradient-to-br from-white to-bg-secondary shadow-card-lg border border-border-light rounded-2xl p-8">
-          {isSimulating && (
-            <div className="absolute top-4 right-4 flex items-center gap-2 text-sm text-accent-primary">
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-accent-primary"></div>
-              <span>Simulating...</span>
-            </div>
-          )}
+      {/* Sticky Results Header */}
+      <div className="sticky top-0 z-30 bg-bg-primary pt-6 pb-2">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="bg-gradient-to-br from-white to-bg-secondary shadow-card-lg border border-border-light rounded-2xl p-6 md:p-8 relative">
+            {isSimulating && (
+              <div className="absolute top-4 right-4 flex items-center gap-2 text-sm text-accent-primary">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-accent-primary"></div>
+                <span>Simulating...</span>
+              </div>
+            )}
           
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             
             {/* Baseline Rate */}
             <div className="text-center">
               <div className="text-sm font-medium text-text-secondary uppercase tracking-wide mb-2">Current Rate</div>
-              <div className="text-4xl font-bold text-text-primary">{policyResults.baseline.rate.toFixed(1)}%</div>
-              <div className="text-xs text-text-tertiary mt-1">{policyResults.baseline.count.toLocaleString()} included</div>
+              <div className="text-4xl font-bold text-text-primary">64%</div>
+              <div className="text-sm text-text-tertiary mt-1">{baselineNational.toLocaleString()} people</div>
             </div>
 
             {/* Projected Rate */}
             <div className="text-center">
               <div className="text-sm font-medium text-text-secondary uppercase tracking-wide mb-2">Projected Rate</div>
-              <div className={`text-4xl font-bold ${impactColor}`}>{policyResults.projected.rate.toFixed(1)}%</div>
-              <div className="text-xs text-text-tertiary mt-1">{policyResults.projected.count.toLocaleString()} included</div>
+              <div className={`text-4xl font-bold ${impactColor}`}>{projectedRate.toFixed(1)}%</div>
+              <div className="text-sm text-text-tertiary mt-1">{projectedNational.toLocaleString()} people</div>
             </div>
 
             {/* Impact */}
@@ -286,10 +343,11 @@ export default function PolicyMode({ population }) {
             <div className="text-center">
               <div className="text-sm font-medium text-text-secondary uppercase tracking-wide mb-2">Newly Included</div>
               <div className={`text-4xl font-bold ${impactColor}`}>
-                {policyResults.impact.newlyIncluded.toLocaleString()}
+                {formatMillions(newlyIncludedNational)}
               </div>
               <div className="text-xs text-text-tertiary mt-1">
-                {policyResults.impact.percentAffected.toFixed(2)}% of population
+                <div className="font-semibold text-text-primary">{newlyIncludedNational.toLocaleString()} Nigerians</div>
+                <div className="text-[10px] mt-0.5">{policyResults.impact.percentAffected.toFixed(2)}% of adults</div>
               </div>
             </div>
           </div>
@@ -299,7 +357,7 @@ export default function PolicyMode({ population }) {
             <div className="relative h-4 bg-border-light rounded-full overflow-hidden">
               <div 
                 className={`absolute top-0 left-0 h-full bg-gradient-to-r ${impactBg} rounded-full transition-all duration-700`}
-                style={{ width: `${Math.min(100, policyResults.projected.rate)}%` }}
+                style={{ width: `${Math.min(100, projectedRate)}%` }}
               />
             </div>
             <div className="flex justify-between text-xs text-text-tertiary mt-2">
@@ -308,13 +366,25 @@ export default function PolicyMode({ population }) {
               <span>100%</span>
             </div>
           </div>
+          </div>
         </div>
+      </div>
 
+      {/* Scrollable Content */}
+      <div className="max-w-7xl mx-auto px-6 pb-6 space-y-6">
         {/* Policy Controls - Top 4 High-Impact Levers */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           
           {/* NIN Enrollment Drive */}
           <PolicyCard icon={CreditCard} title="National ID (NIN) Enrollment" color="from-emerald-500 to-teal-500">
+            {policyResults.contributions.NIN > 0 && (
+              <div className="mb-3 px-3 py-2 bg-emerald-100 border border-emerald-300 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-medium text-emerald-700">Individual Contribution</span>
+                  <span className="text-sm font-bold text-emerald-900">+{policyResults.contributions.NIN.toFixed(2)}pp</span>
+                </div>
+              </div>
+            )}
             <SliderPolicy
               label="NIN Enrollment Rate"
               current={baselineStats.NIN_Current.toFixed(1)}
@@ -324,18 +394,27 @@ export default function PolicyMode({ population }) {
               max={100}
               step={1}
               unit="%"
-              help="Increase from current 68% to near-universal coverage. NIN is required for formal banking (Coefficient: +0.666)"
+              help="Increase from current 68% to near-universal coverage. (Coefficient: +0.666)"
             />
             <div className="mt-3 p-3 bg-emerald-50 rounded-lg border border-emerald-200">
               <p className="text-xs text-emerald-800">
                 <strong>Impact:</strong> Highest coefficient (+0.666). NIN is foundational for KYC and formal financial services.
-                Potential to reach <strong>{Math.round((100 - baselineStats.NIN_Current) / 100 * baselineStats.Total_Population).toLocaleString()}</strong> additional people.
+                Potential to reach <strong>{formatMillions(Math.round((100 - baselineStats.NIN_Current) / 100 * NIGERIA_ADULT_POPULATION))}</strong> additional Nigerians 
+                ({Math.round((100 - baselineStats.NIN_Current) / 100 * NIGERIA_ADULT_POPULATION).toLocaleString()} people).
               </p>
             </div>
           </PolicyCard>
           
           {/* Digital Access Expansion */}
           <PolicyCard icon={Smartphone} title="Digital Access Expansion" color="from-blue-500 to-indigo-500">
+            {policyResults.contributions.Digital > 0 && (
+              <div className="mb-3 px-3 py-2 bg-blue-100 border border-blue-300 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-medium text-blue-700">Individual Contribution</span>
+                  <span className="text-sm font-bold text-blue-900">+{policyResults.contributions.Digital.toFixed(2)}pp</span>
+                </div>
+              </div>
+            )}
             <SliderPolicy
               label="Digital Access Index"
               current={baselineStats.Digital_Current.toFixed(2)}
@@ -344,7 +423,7 @@ export default function PolicyMode({ population }) {
               min={baselineStats.Digital_Current}
               max={2.0}
               step={0.05}
-              help="Mobile ownership + network coverage (0-2 scale). Currently 1.49, target up to 2.0 (Coefficient: +0.530)"
+              help="Mobile ownership + network coverage (0-2 scale). Target up to 2.0 (Coefficient: +0.530)"
             />
             <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
               <p className="text-xs text-blue-800">
@@ -356,6 +435,14 @@ export default function PolicyMode({ population }) {
           
           {/* Education Programs */}
           <PolicyCard icon={GraduationCap} title="Education Programs" color="from-purple-500 to-pink-500">
+            {policyResults.contributions.Education > 0 && (
+              <div className="mb-3 px-3 py-2 bg-purple-100 border border-purple-300 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-medium text-purple-700">Individual Contribution</span>
+                  <span className="text-sm font-bold text-purple-900">+{policyResults.contributions.Education.toFixed(2)}pp</span>
+                </div>
+              </div>
+            )}
             <SliderPolicy
               label="Education Level"
               current={baselineStats.Education_Current.toFixed(2)}
@@ -369,13 +456,21 @@ export default function PolicyMode({ population }) {
             <div className="mt-3 p-3 bg-purple-50 rounded-lg border border-purple-200">
               <p className="text-xs text-purple-800">
                 <strong>Impact:</strong> Third-highest coefficient (+0.510). Education improves financial literacy and employability.
-                Reaching secondary level (2.0) would impact <strong>{Math.round((2.0 - baselineStats.Education_Current) / 2.0 * baselineStats.Total_Population).toLocaleString()}</strong> people.
+                Reaching secondary level (2.0) would impact <strong>{formatMillions(Math.round((2.0 - baselineStats.Education_Current) / 2.0 * NIGERIA_ADULT_POPULATION))}</strong> Nigerians.
               </p>
             </div>
           </PolicyCard>
           
           {/* Infrastructure Access */}
           <PolicyCard icon={Building2} title="Infrastructure Access" color="from-orange-500 to-red-500">
+            {policyResults.contributions.Infrastructure > 0 && (
+              <div className="mb-3 px-3 py-2 bg-orange-100 border border-orange-300 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-medium text-orange-700">Individual Contribution</span>
+                  <span className="text-sm font-bold text-orange-900">+{policyResults.contributions.Infrastructure.toFixed(2)}pp</span>
+                </div>
+              </div>
+            )}
             <SliderPolicy
               label="Infrastructure Access Index"
               current={baselineStats.Infrastructure_Current.toFixed(2)}
@@ -395,6 +490,107 @@ export default function PolicyMode({ population }) {
           </PolicyCard>
         </div>
 
+        {/* Individual Contributions Breakdown */}
+        {deltaPercentagePoints > 0 && (
+          <div className="bg-white rounded-xl shadow-card border border-border-light p-6">
+            <h3 className="text-lg font-semibold text-text-primary mb-4">Individual Policy Contributions</h3>
+            <p className="text-sm text-text-secondary mb-4">
+              Each policy's independent contribution to the total impact. Note: Combined effect may differ due to interactions.
+            </p>
+            
+            <div className="space-y-3">
+              {/* NIN Contribution */}
+              {policyResults.contributions.NIN > 0 && (
+                <div className="flex items-center gap-3">
+                  <div className="w-32 text-sm font-medium text-text-primary">NIN Enrollment</div>
+                  <div className="flex-1">
+                    <div className="relative h-8 bg-emerald-100 rounded-lg overflow-hidden">
+                      <div 
+                        className="absolute top-0 left-0 h-full bg-gradient-to-r from-emerald-500 to-teal-500 flex items-center justify-end pr-2"
+                        style={{ width: `${(policyResults.contributions.NIN / deltaPercentagePoints) * 100}%` }}
+                      >
+                        <span className="text-xs font-bold text-white">+{policyResults.contributions.NIN.toFixed(2)}pp</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="w-16 text-right text-xs text-text-tertiary">
+                    {((policyResults.contributions.NIN / deltaPercentagePoints) * 100).toFixed(0)}%
+                  </div>
+                </div>
+              )}
+              
+              {/* Digital Contribution */}
+              {policyResults.contributions.Digital > 0 && (
+                <div className="flex items-center gap-3">
+                  <div className="w-32 text-sm font-medium text-text-primary">Digital Access</div>
+                  <div className="flex-1">
+                    <div className="relative h-8 bg-blue-100 rounded-lg overflow-hidden">
+                      <div 
+                        className="absolute top-0 left-0 h-full bg-gradient-to-r from-blue-500 to-indigo-500 flex items-center justify-end pr-2"
+                        style={{ width: `${(policyResults.contributions.Digital / deltaPercentagePoints) * 100}%` }}
+                      >
+                        <span className="text-xs font-bold text-white">+{policyResults.contributions.Digital.toFixed(2)}pp</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="w-16 text-right text-xs text-text-tertiary">
+                    {((policyResults.contributions.Digital / deltaPercentagePoints) * 100).toFixed(0)}%
+                  </div>
+                </div>
+              )}
+              
+              {/* Education Contribution */}
+              {policyResults.contributions.Education > 0 && (
+                <div className="flex items-center gap-3">
+                  <div className="w-32 text-sm font-medium text-text-primary">Education</div>
+                  <div className="flex-1">
+                    <div className="relative h-8 bg-purple-100 rounded-lg overflow-hidden">
+                      <div 
+                        className="absolute top-0 left-0 h-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-end pr-2"
+                        style={{ width: `${(policyResults.contributions.Education / deltaPercentagePoints) * 100}%` }}
+                      >
+                        <span className="text-xs font-bold text-white">+{policyResults.contributions.Education.toFixed(2)}pp</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="w-16 text-right text-xs text-text-tertiary">
+                    {((policyResults.contributions.Education / deltaPercentagePoints) * 100).toFixed(0)}%
+                  </div>
+                </div>
+              )}
+              
+              {/* Infrastructure Contribution */}
+              {policyResults.contributions.Infrastructure > 0 && (
+                <div className="flex items-center gap-3">
+                  <div className="w-32 text-sm font-medium text-text-primary">Infrastructure</div>
+                  <div className="flex-1">
+                    <div className="relative h-8 bg-orange-100 rounded-lg overflow-hidden">
+                      <div 
+                        className="absolute top-0 left-0 h-full bg-gradient-to-r from-orange-500 to-red-500 flex items-center justify-end pr-2"
+                        style={{ width: `${(policyResults.contributions.Infrastructure / deltaPercentagePoints) * 100}%` }}
+                      >
+                        <span className="text-xs font-bold text-white">+{policyResults.contributions.Infrastructure.toFixed(2)}pp</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="w-16 text-right text-xs text-text-tertiary">
+                    {((policyResults.contributions.Infrastructure / deltaPercentagePoints) * 100).toFixed(0)}%
+                  </div>
+                </div>
+              )}
+              
+              {/* Total */}
+              <div className="pt-3 mt-3 border-t border-border-light flex items-center gap-3">
+                <div className="w-32 text-sm font-bold text-text-primary">Combined Total</div>
+                <div className="flex-1">
+                  <div className="text-lg font-bold text-accent-primary">+{deltaPercentagePoints.toFixed(2)}pp</div>
+                </div>
+                <div className="w-16 text-right text-sm font-medium text-text-primary">100%</div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Policy Insights & Reset */}
         <div className="bg-white rounded-xl shadow-card border border-border-light p-6">
           <div className="flex items-center justify-between">
@@ -407,8 +603,8 @@ export default function PolicyMode({ population }) {
               {deltaPercentagePoints > 0 && (
                 <div className="mt-3 p-3 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-lg border border-emerald-200">
                   <p className="text-sm text-emerald-900">
-                    <strong>Combined Impact:</strong> Your policy interventions would bring <strong>{policyResults.impact.newlyIncluded.toLocaleString()}</strong> additional people 
-                    into formal financial inclusion, increasing the national rate by <strong>{deltaPercentagePoints.toFixed(2)} percentage points</strong>.
+                    <strong>Combined Impact:</strong> Your policy interventions would bring <strong>{formatMillions(newlyIncludedNational)}</strong> additional Nigerians 
+                    ({newlyIncludedNational.toLocaleString()} people) into formal financial inclusion, increasing the national rate by <strong>{deltaPercentagePoints.toFixed(2)} percentage points</strong>.
                   </p>
                 </div>
               )}
@@ -429,12 +625,13 @@ export default function PolicyMode({ population }) {
             <AlertCircle className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
             <div className="text-sm text-blue-800">
               <strong>Methodology:</strong> Policy simulations use probabilistic application based on target coverage. 
-              Results show potential impact on {baselineStats.Total_Population.toLocaleString()} survey respondents. 
-              Baseline rate calibrated to EFInA standard: {policyResults.baseline.rate.toFixed(1)}%.
+              Based on a representative sample of {baselineStats.Total_Population.toLocaleString()} survey respondents, 
+              results are extrapolated to Nigeria's adult population (~{formatMillions(NIGERIA_ADULT_POPULATION)} adults). 
+              Baseline rate calibrated to EFInA standard: 64.0%.
             </div>
           </div>
         </div>
-      </div>
+      </div> {/* End scrollable content */}
     </div>
   );
 }
