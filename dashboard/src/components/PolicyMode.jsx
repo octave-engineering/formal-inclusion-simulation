@@ -2,9 +2,10 @@ import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { CreditCard, Smartphone, GraduationCap, Building2, ArrowUp, ArrowDown, RotateCcw, AlertCircle } from 'lucide-react';
 import { simulatePolicyImpact } from '../utils/policyPrediction';
+import ModelPerformanceBadge from './ModelPerformanceBadge';
 
-// Nigeria's adult population (18+) - approximately 110 million
-const NIGERIA_ADULT_POPULATION = 110_000_000;
+// Nigeria's adult population (18+) - approximately 125 million
+const NIGERIA_ADULT_POPULATION = 125_000_000;
 
 // EFInA calibrated baseline rate
 const EFINA_BASELINE_RATE = 64.0;
@@ -20,6 +21,7 @@ export default function PolicyMode({ population }) {
   const [baselineStats, setBaselineStats] = useState(null);
   const [isSimulating, setIsSimulating] = useState(false);
   const debounceTimer = useRef(null);
+  const [showAdvanced, setShowAdvanced] = useState(false);
   
   // Calculate scaling factor from sample to national population
   const scalingFactor = useMemo(() => {
@@ -261,6 +263,43 @@ export default function PolicyMode({ population }) {
     }
   }, [baselineStats]);
 
+  const applyPreset = (presetKey) => {
+    if (!baselineStats) return;
+
+    let nin = baselineStats.NIN_Current;
+    let digital = baselineStats.Digital_Current;
+    let education = baselineStats.Education_Current;
+    let infra = baselineStats.Infrastructure_Current;
+
+    switch (presetKey) {
+      case 'NIN_DIGITAL':
+        nin = Math.min(95, nin + 20);
+        digital = Math.min(2.0, digital + 0.5);
+        break;
+      case 'EDUCATION':
+        education = Math.min(3.0, Math.max(education, 2.0));
+        break;
+      case 'INFRASTRUCTURE':
+        infra = Math.min(10.0, infra + 4.0);
+        break;
+      case 'COMPREHENSIVE':
+        nin = Math.min(95, nin + 20);
+        digital = Math.min(2.0, digital + 0.5);
+        education = Math.min(3.0, Math.max(education, 2.0));
+        infra = Math.min(10.0, infra + 4.0);
+        break;
+      default:
+        break;
+    }
+
+    setPolicyInputs({
+      NIN_Target: nin,
+      Digital_Target: digital,
+      Education_Target: education,
+      Infrastructure_Target: infra,
+    });
+  };
+
   if (!baselineStats || !policyInputs || !policyResults) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-bg-primary">
@@ -366,6 +405,20 @@ export default function PolicyMode({ population }) {
   const impactColor = deltaPercentagePoints >= 5 ? 'text-brand-green' : deltaPercentagePoints >= 1 ? 'text-accent-primary' : 'text-text-secondary';
   const impactBg = deltaPercentagePoints >= 5 ? 'bg-brand-green' : deltaPercentagePoints >= 1 ? 'bg-accent-primary' : 'bg-gray-400';
 
+  const contributionEntries = Object.entries(policyResults.contributions || {});
+  const topContribution = contributionEntries
+    .filter(([, value]) => typeof value === 'number')
+    .sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]))[0];
+
+  let topDriverLabel = null;
+  if (topContribution && topContribution[1] > 0.01) {
+    const key = topContribution[0];
+    if (key === 'NIN') topDriverLabel = 'expanding NIN coverage';
+    if (key === 'Digital') topDriverLabel = 'improving digital access';
+    if (key === 'Education') topDriverLabel = 'raising education levels';
+    if (key === 'Infrastructure') topDriverLabel = 'expanding financial access infrastructure';
+  }
+
   return (
     <div className="min-h-screen bg-bg-primary">
       {/* Sticky Results Header */}
@@ -379,6 +432,10 @@ export default function PolicyMode({ population }) {
               </div>
             )}
           
+          <div className="flex justify-end mb-3 md:mb-4">
+            <ModelPerformanceBadge />
+          </div>
+
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
             
             {/* Baseline Rate */}
@@ -444,6 +501,52 @@ export default function PolicyMode({ population }) {
 
       {/* Scrollable Content */}
       <div className="max-w-7xl mx-auto px-3 md:px-6 pb-6 space-y-4 md:space-y-6">
+        {/* Quick Policy Scenarios */}
+        <div className="bg-white rounded-xl shadow-card border border-border-light p-4 md:p-6">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 md:gap-4 mb-3">
+            <div>
+              <h3 className="text-sm md:text-base font-semibold text-text-primary">Quick policy scenarios</h3>
+              <p className="text-xs md:text-sm text-text-secondary">
+                Use these presets to explore realistic bundles of interventions. You can fine-tune all levers in the advanced settings below.
+              </p>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 md:gap-3">
+            <button
+              type="button"
+              onClick={() => applyPreset('NIN_DIGITAL')}
+              className="text-left px-3 py-2 md:px-4 md:py-3 rounded-xl border border-border-light bg-bg-secondary hover:border-accent-primary hover:bg-accent-primary/5 transition-colors text-xs md:text-sm"
+            >
+              <div className="font-semibold text-text-primary mb-0.5">NIN &amp; Digital push</div>
+              <p className="text-[11px] md:text-xs text-text-secondary">Increase national ID coverage and digital access towards universal coverage.</p>
+            </button>
+            <button
+              type="button"
+              onClick={() => applyPreset('EDUCATION')}
+              className="text-left px-3 py-2 md:px-4 md:py-3 rounded-xl border border-border-light bg-bg-secondary hover:border-accent-primary hover:bg-accent-primary/5 transition-colors text-xs md:text-sm"
+            >
+              <div className="font-semibold text-text-primary mb-0.5">Education upgrade</div>
+              <p className="text-[11px] md:text-xs text-text-secondary">Raise average schooling towards at least secondary completion.</p>
+            </button>
+            <button
+              type="button"
+              onClick={() => applyPreset('INFRASTRUCTURE')}
+              className="text-left px-3 py-2 md:px-4 md:py-3 rounded-xl border border-border-light bg-bg-secondary hover:border-accent-primary hover:bg-accent-primary/5 transition-colors text-xs md:text-sm"
+            >
+              <div className="font-semibold text-text-primary mb-0.5">Infrastructure expansion</div>
+              <p className="text-[11px] md:text-xs text-text-secondary">Add more financial access points and nearby facilities in under-served areas.</p>
+            </button>
+            <button
+              type="button"
+              onClick={() => applyPreset('COMPREHENSIVE')}
+              className="text-left px-3 py-2 md:px-4 md:py-3 rounded-xl border border-border-light bg-bg-secondary hover:border-accent-primary hover:bg-accent-primary/5 transition-colors text-xs md:text-sm"
+            >
+              <div className="font-semibold text-text-primary mb-0.5">Comprehensive programme</div>
+              <p className="text-[11px] md:text-xs text-text-secondary">Combine ID, digital access, education and infrastructure improvements.</p>
+            </button>
+          </div>
+        </div>
+
         {/* Policy Controls - Top 4 High-Impact Levers */}
         <div className="relative">
           {/* Loading Overlay */}
@@ -465,6 +568,18 @@ export default function PolicyMode({ population }) {
             </div>
           )}
           
+          <div className="flex items-center justify-between mb-3 md:mb-4">
+            <h3 className="text-sm md:text-base font-semibold text-text-primary">Advanced policy settings</h3>
+            <button
+              type="button"
+              onClick={() => setShowAdvanced(prev => !prev)}
+              className="text-[11px] md:text-xs px-3 py-1.5 rounded-full border border-border-light bg-white hover:border-accent-primary hover:bg-accent-primary/5 text-text-secondary font-medium transition-colors"
+            >
+              {showAdvanced ? 'Hide sliders' : 'Show sliders (4 levers)'}
+            </button>
+          </div>
+
+          {showAdvanced && (
           <div className={`grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 ${isSimulating ? 'pointer-events-none opacity-70' : ''}`}>
           
           {/* NIN Enrollment Drive */}
@@ -581,6 +696,7 @@ export default function PolicyMode({ population }) {
             </div>
           </PolicyCard>
           </div>
+          )}
         </div> {/* End relative wrapper for loading overlay */}
 
         {/* Individual Contributions Breakdown */}
@@ -699,6 +815,12 @@ export default function PolicyMode({ population }) {
                     <strong>Combined Impact:</strong> Your policy interventions would bring <strong>{formatMillions(newlyIncludedNational)}</strong> additional Nigerians 
                     ({newlyIncludedNational.toLocaleString()} people) into formal financial inclusion, increasing the national rate by <strong>{deltaPercentagePoints.toFixed(2)} percentage points</strong>.
                   </p>
+                  {topDriverLabel && (
+                    <p className="text-xs text-emerald-900 mt-1.5">
+                      This scenario is driven mainly by <strong>{topDriverLabel}</strong>. As a policy package, prioritising this lever first
+                      and then layering others can deliver the largest gains for the resources invested.
+                    </p>
+                  )}
                 </div>
               )}
             </div>

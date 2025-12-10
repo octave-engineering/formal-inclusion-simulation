@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { TrendingUp, Users, Target, Sparkles } from 'lucide-react';
+import { TrendingUp, Users, Target, Sparkles, Info } from 'lucide-react';
 import efinaLogo from './assets/efina_logo.png';
 import PolicyMode from './components/PolicyMode';
 import IndividualMode from './components/IndividualMode';
 import VariableInfo from './components/VariableInfo';
+import AboutModal from './components/AboutModal';
 
 function App() {
   const [mode, setMode] = useState('individual');
   const [population, setPopulation] = useState(null);
   const [loadingPopulation, setLoadingPopulation] = useState(false);
   const [loadingProgress, setLoadingProgress] = useState(0);
+  const [showAbout, setShowAbout] = useState(false);
 
   // Load population data for policy mode with progress tracking
   useEffect(() => {
@@ -57,7 +59,7 @@ function App() {
   return (
     <div className="min-h-screen w-screen bg-bg-primary flex flex-col">
       {/* Modern Header - Responsive */}
-      <header className="bg-gradient-to-r from-brand-purple to-brand-indigo text-white shadow-card-lg">
+      <header className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-card-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-0">
             {/* Logo & Title */}
@@ -110,6 +112,14 @@ function App() {
                   <span className="hidden sm:inline">Info</span>
                 </button> */}
               </div>
+              <button
+                type="button"
+                onClick={() => setShowAbout(true)}
+                className="inline-flex items-center gap-1.5 px-3 sm:px-5 py-2 sm:py-3 rounded-lg border border-white/30 text-[11px] sm:text-sm font-medium bg-white/5 hover:bg-white/10 transition-colors"
+              >
+                <Info className="w-3.5 h-3.5" />
+                <span className="hidden xs:inline sm:inline">About</span>
+              </button>
             </div>
           </div>
         </div>
@@ -145,6 +155,9 @@ function App() {
         ) : (
           <PolicyMode population={population} />
         )
+      )}
+      {showAbout && (
+        <AboutModal onClose={() => setShowAbout(false)} />
       )}
     </div>
   );

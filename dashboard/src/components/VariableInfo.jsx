@@ -1,7 +1,51 @@
 import React from 'react';
 import { BookOpen, TrendingUp, DollarSign, PiggyBank } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { FEATURE_WEIGHTS } from '../utils/prediction_new';
 
 export default function VariableInfo() {
+  const baseFeatureKeys = [
+    'gender_male',
+    'education_numeric',
+    'income_numeric',
+    'wealth_numeric',
+    'urban',
+    'savings_frequency_numeric',
+    'money_shortage_frequency',
+    'Saves_Money',
+    'Informal_Savings_Mode',
+    'Regular_Saver',
+    'Diverse_Savings_Reasons',
+    'Old_Age_Planning',
+    'Savings_Frequency_Score',
+    'Savings_Behavior_Score',
+    'Has_NIN',
+    'Formal_Employment',
+    'Business_Income',
+    'Subsistence_Farming',
+    'Commercial_Farming',
+    'Passive_Income',
+    'Family_Friends_Support',
+    'Income_Diversity_Score',
+    'Digital_Access_Index',
+    'Infrastructure_Access_Index',
+    'Subsist_x_Formal',
+    'Subsist_x_Business',
+    'Subsist_x_Urban',
+  ];
+
+  const baseFeatureImportance = baseFeatureKeys
+    .map((key) => {
+      const coefficient = FEATURE_WEIGHTS[key] || 0;
+      return {
+        feature: key,
+        label: key,
+        coefficient,
+        absCoefficient: Math.abs(coefficient),
+      };
+    })
+    .sort((a, b) => b.absCoefficient - a.absCoefficient);
+
   const VariableCard = ({ name, type, coefficient, range, description, policyRelevance, baseline }) => (
     <div className="bg-white p-6 rounded-lg shadow-sm border border-border-light hover:shadow-md transition-shadow">
       <div className="flex items-start justify-between mb-3">
@@ -107,6 +151,56 @@ export default function VariableInfo() {
               description="Age of the respondent in years. Captures the life-cycle dimension of financial inclusion, as financial needs and capabilities evolve with age. Younger adults may lack income history or collateral; middle-aged adults are more likely to have stable employment and family responsibilities; older adults may have accumulated assets but face barriers in digital adoption."
               policyRelevance="Age-tailored financial products can improve inclusion: youth savings accounts and student loans for young adults, mortgage and insurance products for middle-aged households, and pension products plus senior-friendly digital interfaces for older adults."
             />
+          </div>
+        </section>
+
+        {/* Feature Importance Overview */}
+        <section className="mb-12">
+          <h2 className="text-2xl font-bold text-text-primary mb-4">Which variables matter most?</h2>
+          <p className="text-text-secondary mb-4 leading-relaxed text-sm">
+            The chart below shows the relative strength of each of the 27 base drivers used in the model. Bars represent the
+            absolute size of the coefficient (after standardisation). Longer bars indicate variables with stronger influence on
+            the probability of being formally included.
+          </p>
+          <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm border border-border-light">
+            <div className="h-80 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={baseFeatureImportance.slice(0, 12)}
+                  layout="vertical"
+                  margin={{ top: 10, right: 20, left: 80, bottom: 10 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e5e7eb" />
+                  <XAxis type="number" tick={{ fontSize: 10 }} tickFormatter={(v) => v.toFixed(2)} />
+                  <YAxis
+                    type="category"
+                    dataKey="feature"
+                    tick={{ fontSize: 10 }}
+                    width={120}
+                  />
+                  <Tooltip
+                    formatter={(value, name, props) => {
+                      const coef = props.payload.coefficient;
+                      return [coef.toFixed(3), 'Coefficient'];
+                    }}
+                    labelFormatter={(label) => label}
+                  />
+                  <Bar dataKey="absCoefficient" radius={[4, 4, 4, 4]}>
+                    {baseFeatureImportance.slice(0, 12).map((entry, index) => (
+                      <Cell
+                        key={`cell-${entry.feature}-${index}`}
+                        fill={entry.coefficient >= 0 ? '#16a34a' : '#dc2626'}
+                      />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+            <p className="mt-3 text-xs text-text-tertiary">
+              Note: Green bars indicate variables that increase inclusion probability (positive coefficients), while red bars
+              indicate variables that reduce it (negative coefficients). Scores are based on the same logistic regression used in
+              the simulator.
+            </p>
           </div>
         </section>
 

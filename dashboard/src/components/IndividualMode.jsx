@@ -1,7 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import { Users, DollarSign, TrendingUp, MapPin, Wallet, RotateCcw, Gauge, GraduationCap, Coins, PiggyBank, Info, AlertCircle } from 'lucide-react';
+import { Users, DollarSign, TrendingUp, MapPin, Wallet, RotateCcw, Gauge, GraduationCap, Coins, PiggyBank, Info, AlertCircle, Briefcase, Wheat, ShoppingBag, School, Wrench, Apple, Home, Store, ChevronDown, ChevronUp } from 'lucide-react';
 import { predictIndividual, SURVEY_DEFAULTS, FEATURE_WEIGHTS, FEATURE_ORDER, SCALER_MEAN, SCALER_SCALE } from '../utils/prediction_new';
+import ModelPerformanceBadge from './ModelPerformanceBadge';
 
 const NIGERIAN_STATES = [
   "ABIA", "ADAMAWA", "AKWA-IBOM", "ANAMBRA", "BAUCHI", "BAYELSA", "BENUE", "BORNO",
@@ -11,11 +12,365 @@ const NIGERIAN_STATES = [
   "RIVERS", "SOKOTO", "TARABA", "YOBE", "ZAMFARA"
 ];
 
+const NATIONAL_BASELINE_RATE = 64.0; // Approximate EFInA national inclusion rate
+
+// Preset personas representing diverse Nigerian profiles
+const PERSONAS = [
+  {
+    id: 'lagos_banker',
+    label: 'Lagos Bank Officer',
+    icon: Briefcase,
+    description: '32-year-old male banker in Victoria Island',
+    values: {
+      state: 'LAGOS',
+      urban: 1,
+      gender_male: 1,
+      age_group: '25-34',
+      education_numeric: 3,
+      income_numeric: 120000,
+      wealth_numeric: 4,
+      Formal_Employment: 1,
+      Business_Income: 0,
+      Subsistence_Farming: 0,
+      Commercial_Farming: 0,
+      Passive_Income: 0,
+      Family_Friends_Support: 0,
+      Has_NIN: 1,
+      Digital_Access_Index: 2,
+      Infrastructure_Access_Index: 11,
+      Saves_Money: 1,
+      Regular_Saver: 1,
+      Informal_Savings_Mode: 0,
+      Diverse_Savings_Reasons: 1,
+      Old_Age_Planning: 1,
+      savings_frequency_numeric: 4,
+      Savings_Frequency_Score: 4,
+      Savings_Behavior_Score: 4,
+      money_shortage_frequency: 1
+    }
+  },
+  {
+    id: 'katsina_farmer',
+    label: 'Katsina Subsistence Farmer',
+    icon: Wheat,
+    description: '45-year-old female farmer in rural Katsina',
+    values: {
+      state: 'KATSINA',
+      urban: 0,
+      gender_male: 0,
+      age_group: '45-54',
+      education_numeric: 0,
+      income_numeric: 8000,
+      wealth_numeric: 1,
+      Formal_Employment: 0,
+      Business_Income: 0,
+      Subsistence_Farming: 1,
+      Commercial_Farming: 0,
+      Passive_Income: 0,
+      Family_Friends_Support: 0,
+      Has_NIN: 0,
+      Digital_Access_Index: 0,
+      Infrastructure_Access_Index: 2,
+      Saves_Money: 1,
+      Regular_Saver: 0,
+      Informal_Savings_Mode: 1,
+      Diverse_Savings_Reasons: 0,
+      Old_Age_Planning: 0,
+      savings_frequency_numeric: 1,
+      Savings_Frequency_Score: 1,
+      Savings_Behavior_Score: 1,
+      money_shortage_frequency: 4
+    }
+  },
+  {
+    id: 'lagos_trader',
+    label: 'Lagos Market Trader',
+    icon: ShoppingBag,
+    description: '38-year-old female trader at Balogun Market',
+    values: {
+      state: 'LAGOS',
+      urban: 1,
+      gender_male: 0,
+      age_group: '35-44',
+      education_numeric: 1,
+      income_numeric: 45000,
+      wealth_numeric: 2,
+      Formal_Employment: 0,
+      Business_Income: 1,
+      Subsistence_Farming: 0,
+      Commercial_Farming: 0,
+      Passive_Income: 0,
+      Family_Friends_Support: 0,
+      Has_NIN: 0,
+      Digital_Access_Index: 1,
+      Infrastructure_Access_Index: 9,
+      Saves_Money: 1,
+      Regular_Saver: 0,
+      Informal_Savings_Mode: 1,
+      Diverse_Savings_Reasons: 0,
+      Old_Age_Planning: 0,
+      savings_frequency_numeric: 2,
+      Savings_Frequency_Score: 2,
+      Savings_Behavior_Score: 2,
+      money_shortage_frequency: 3
+    }
+  },
+  {
+    id: 'kogi_rice_farmer',
+    label: 'Kogi Rice Farmer',
+    icon: Wheat,
+    description: '42-year-old male commercial farmer',
+    values: {
+      state: 'KOGI',
+      urban: 0,
+      gender_male: 1,
+      age_group: '35-44',
+      education_numeric: 2,
+      income_numeric: 65000,
+      wealth_numeric: 3,
+      Formal_Employment: 0,
+      Business_Income: 1,
+      Subsistence_Farming: 0,
+      Commercial_Farming: 1,
+      Passive_Income: 0,
+      Family_Friends_Support: 0,
+      Has_NIN: 1,
+      Digital_Access_Index: 1,
+      Infrastructure_Access_Index: 4,
+      Saves_Money: 1,
+      Regular_Saver: 1,
+      Informal_Savings_Mode: 0,
+      Diverse_Savings_Reasons: 1,
+      Old_Age_Planning: 0,
+      savings_frequency_numeric: 3,
+      Savings_Frequency_Score: 3,
+      Savings_Behavior_Score: 3,
+      money_shortage_frequency: 2
+    }
+  },
+  {
+    id: 'abuja_graduate',
+    label: 'Abuja Young Graduate',
+    icon: GraduationCap,
+    description: '26-year-old female NYSC member',
+    values: {
+      state: 'FCT ABUJA',
+      urban: 1,
+      gender_male: 0,
+      age_group: '25-34',
+      education_numeric: 3,
+      income_numeric: 35000,
+      wealth_numeric: 2,
+      Formal_Employment: 0,
+      Business_Income: 1,
+      Subsistence_Farming: 0,
+      Commercial_Farming: 0,
+      Passive_Income: 0,
+      Family_Friends_Support: 1,
+      Has_NIN: 1,
+      Digital_Access_Index: 2,
+      Infrastructure_Access_Index: 10,
+      Saves_Money: 1,
+      Regular_Saver: 0,
+      Informal_Savings_Mode: 0,
+      Diverse_Savings_Reasons: 0,
+      Old_Age_Planning: 0,
+      savings_frequency_numeric: 2,
+      Savings_Frequency_Score: 2,
+      Savings_Behavior_Score: 2,
+      money_shortage_frequency: 3
+    }
+  },
+  {
+    id: 'benue_teacher',
+    label: 'Benue School Teacher',
+    icon: School,
+    description: '50-year-old male primary teacher',
+    values: {
+      state: 'BENUE',
+      urban: 0,
+      gender_male: 1,
+      age_group: '45-54',
+      education_numeric: 3,
+      income_numeric: 55000,
+      wealth_numeric: 3,
+      Formal_Employment: 1,
+      Business_Income: 0,
+      Subsistence_Farming: 0,
+      Commercial_Farming: 0,
+      Passive_Income: 0,
+      Family_Friends_Support: 0,
+      Has_NIN: 1,
+      Digital_Access_Index: 1,
+      Infrastructure_Access_Index: 5,
+      Saves_Money: 1,
+      Regular_Saver: 1,
+      Informal_Savings_Mode: 0,
+      Diverse_Savings_Reasons: 1,
+      Old_Age_Planning: 1,
+      savings_frequency_numeric: 3,
+      Savings_Frequency_Score: 3,
+      Savings_Behavior_Score: 3,
+      money_shortage_frequency: 2
+    }
+  },
+  {
+    id: 'rivers_mechanic',
+    label: 'Port Harcourt Mechanic',
+    icon: Wrench,
+    description: '35-year-old male auto mechanic',
+    values: {
+      state: 'RIVERS',
+      urban: 1,
+      gender_male: 1,
+      age_group: '35-44',
+      education_numeric: 2,
+      income_numeric: 58000,
+      wealth_numeric: 3,
+      Formal_Employment: 0,
+      Business_Income: 1,
+      Subsistence_Farming: 0,
+      Commercial_Farming: 0,
+      Passive_Income: 0,
+      Family_Friends_Support: 0,
+      Has_NIN: 1,
+      Digital_Access_Index: 1,
+      Infrastructure_Access_Index: 8,
+      Saves_Money: 1,
+      Regular_Saver: 0,
+      Informal_Savings_Mode: 0,
+      Diverse_Savings_Reasons: 0,
+      Old_Age_Planning: 0,
+      savings_frequency_numeric: 2,
+      Savings_Frequency_Score: 2,
+      Savings_Behavior_Score: 2,
+      money_shortage_frequency: 3
+    }
+  },
+  {
+    id: 'kaduna_tomato_seller',
+    label: 'Kaduna Tomato Seller',
+    icon: Apple,
+    description: '52-year-old female market seller',
+    values: {
+      state: 'KADUNA',
+      urban: 0,
+      gender_male: 0,
+      age_group: '55-64',
+      education_numeric: 0,
+      income_numeric: 18000,
+      wealth_numeric: 1,
+      Formal_Employment: 0,
+      Business_Income: 1,
+      Subsistence_Farming: 1,
+      Commercial_Farming: 0,
+      Passive_Income: 0,
+      Family_Friends_Support: 0,
+      Has_NIN: 0,
+      Digital_Access_Index: 0,
+      Infrastructure_Access_Index: 3,
+      Saves_Money: 1,
+      Regular_Saver: 0,
+      Informal_Savings_Mode: 1,
+      Diverse_Savings_Reasons: 0,
+      Old_Age_Planning: 0,
+      savings_frequency_numeric: 1,
+      Savings_Frequency_Score: 1,
+      Savings_Behavior_Score: 1,
+      money_shortage_frequency: 4
+    }
+  },
+  {
+    id: 'lagos_retiree',
+    label: 'Lagos Retired Civil Servant',
+    icon: Home,
+    description: '68-year-old male pensioner in Ikeja',
+    values: {
+      state: 'LAGOS',
+      urban: 1,
+      gender_male: 1,
+      age_group: '65+',
+      education_numeric: 3,
+      income_numeric: 85000,
+      wealth_numeric: 4,
+      Formal_Employment: 0,
+      Business_Income: 0,
+      Subsistence_Farming: 0,
+      Commercial_Farming: 0,
+      Passive_Income: 1,
+      Family_Friends_Support: 0,
+      Has_NIN: 1,
+      Digital_Access_Index: 1,
+      Infrastructure_Access_Index: 11,
+      Saves_Money: 1,
+      Regular_Saver: 1,
+      Informal_Savings_Mode: 0,
+      Diverse_Savings_Reasons: 1,
+      Old_Age_Planning: 1,
+      savings_frequency_numeric: 4,
+      Savings_Frequency_Score: 4,
+      Savings_Behavior_Score: 4,
+      money_shortage_frequency: 1
+    }
+  },
+  {
+    id: 'anambra_shop_owner',
+    label: 'Anambra Shop Owner',
+    icon: Store,
+    description: '29-year-old female provisions shop owner',
+    values: {
+      state: 'ANAMBRA',
+      urban: 0,
+      gender_male: 0,
+      age_group: '25-34',
+      education_numeric: 2,
+      income_numeric: 42000,
+      wealth_numeric: 2,
+      Formal_Employment: 0,
+      Business_Income: 1,
+      Subsistence_Farming: 0,
+      Commercial_Farming: 0,
+      Passive_Income: 0,
+      Family_Friends_Support: 0,
+      Has_NIN: 1,
+      Digital_Access_Index: 2,
+      Infrastructure_Access_Index: 6,
+      Saves_Money: 1,
+      Regular_Saver: 1,
+      Informal_Savings_Mode: 1,
+      Diverse_Savings_Reasons: 0,
+      Old_Age_Planning: 0,
+      savings_frequency_numeric: 3,
+      Savings_Frequency_Score: 3,
+      Savings_Behavior_Score: 3,
+      money_shortage_frequency: 2
+    }
+  }
+];
+
 export default function IndividualMode({ onReset }) {
   const [inputs, setInputs] = useState({
     ...SURVEY_DEFAULTS,
     state: 'LAGOS' // Default state (not used in model, display only)
   });
+
+  const [selectedPersona, setSelectedPersona] = useState(null);
+  const [showInsightNarrative, setShowInsightNarrative] = useState(false);
+  const [showInfrastructureDetails, setShowInfrastructureDetails] = useState(false);
+  const [showSavingsDetails, setShowSavingsDetails] = useState(false);
+  const [showIncomeDetails, setShowIncomeDetails] = useState(false);
+
+  // Load a persona's values
+  const loadPersona = (personaId) => {
+    const persona = PERSONAS.find(p => p.id === personaId);
+    if (persona) {
+      setInputs(prev => ({
+        ...prev,
+        ...persona.values
+      }));
+      setSelectedPersona(personaId);
+    }
+  };
 
   // Calculate prediction using the new model
   const prediction = useMemo(() => {
@@ -55,6 +410,11 @@ export default function IndividualMode({ onReset }) {
   const probabilityGradient = prediction >= 0.7 ? 'from-brand-green to-green-400' : prediction >= 0.5 ? 'from-accent-primary to-accent-secondary' : 'from-brand-red to-red-400';
 
   const updateInput = (key, value) => {
+    // Clear selected persona when user manually adjusts values
+    if (selectedPersona) {
+      setSelectedPersona(null);
+    }
+    
     setInputs(prev => {
       // Don't parse string values like age_group and state
       const parsedValue = (key === 'age_group' || key === 'state') ? value : parseFloat(value);
@@ -133,6 +493,7 @@ export default function IndividualMode({ onReset }) {
       ...SURVEY_DEFAULTS,
       state: 'LAGOS'
     });
+    setSelectedPersona(null);
   };
 
   // Feature contributions for visualization (as percentages)
@@ -200,6 +561,38 @@ export default function IndividualMode({ onReset }) {
     // Sort by absolute contribution and take top 8
     return contributions.sort((a, b) => b.absContribution - a.absContribution).slice(0, 8);
   }, [inputs]);
+
+  const insightNarrative = useMemo(() => {
+    const diffFromBaseline = probabilityPercent - NATIONAL_BASELINE_RATE;
+    const direction = diffFromBaseline >= 0 ? 'higher' : 'lower';
+    const absDiff = Math.abs(diffFromBaseline).toFixed(1);
+
+    const positiveDrivers = featureContributions
+      .filter(f => f.rawContribution > 0)
+      .slice(0, 3)
+      .map(f => f.name);
+
+    const negativeDrivers = featureContributions
+      .filter(f => f.rawContribution < 0)
+      .slice(0, 2)
+      .map(f => f.name);
+
+    let strengthLabel = 'Moderate';
+    if (probabilityPercent >= 70) {
+      strengthLabel = 'High';
+    } else if (probabilityPercent < 50) {
+      strengthLabel = 'Low';
+    }
+
+    return {
+      strengthLabel,
+      diffFromBaseline,
+      absDiff,
+      direction,
+      positiveDrivers,
+      negativeDrivers,
+    };
+  }, [probabilityPercent, featureContributions]);
 
   // Input component
   const SliderInput = ({ label, value, onChange, min, max, step, unit = '', help, disabled = false, formatValue }) => (
@@ -330,7 +723,7 @@ export default function IndividualMode({ onReset }) {
     <div className="min-h-screen bg-bg-primary">
       <div className="max-w-7xl mx-auto">
         {/* Hero KPI Section - Sticky */}
-        <div className="sticky top-16 sm:top-[72px] md:top-[14px] z-20 bg-gradient-to-br from-white to-bg-secondary shadow-lg lg:shadow-card-lg border-b border-border-light transition-all lg:rounded-2xl lg:mx-6 lg:mt-6 p-4 sm:p-6 lg:p-8 backdrop-blur-sm">
+        <div className="sticky top-0 z-20 bg-gradient-to-br from-white to-bg-secondary shadow-lg lg:shadow-card-lg border-b border-border-light transition-all lg:rounded-2xl lg:mx-6 p-4 sm:p-6 lg:p-8 backdrop-blur-sm">
           <div className="flex items-start justify-between mb-3 sm:mb-6">
             <div className="flex-1">
               <div className="text-xs sm:text-sm font-medium text-text-secondary uppercase tracking-wide mb-1 sm:mb-2">Formal Inclusion Likelihood</div>
@@ -389,6 +782,98 @@ export default function IndividualMode({ onReset }) {
             <p className="text-text-secondary text-center">
               A person with these characteristics has a <span className={`font-bold ${probabilityColor}`}>{probabilityPercent.toFixed(1)}%</span> likelihood of being formally included
             </p>
+          </div>
+
+          <div className="mt-3 sm:mt-4 bg-white/80 border border-border-light rounded-xl overflow-hidden">
+            <button
+              onClick={() => setShowInsightNarrative(!showInsightNarrative)}
+              className="w-full flex items-center justify-between p-3 sm:p-4 hover:bg-bg-secondary/50 transition-colors"
+            >
+              <span className="text-xs sm:text-sm font-semibold text-text-primary">
+                Profile Insights & Drivers
+              </span>
+              {showInsightNarrative ? (
+                <ChevronUp className="w-4 h-4 text-text-secondary" />
+              ) : (
+                <ChevronDown className="w-4 h-4 text-text-secondary" />
+              )}
+            </button>
+            
+            {showInsightNarrative && (
+              <div className="px-3 sm:px-4 pb-3 sm:pb-4 pt-0 border-t border-border-light">
+                <p className="text-[11px] sm:text-xs text-text-secondary mb-1.5 mt-3">
+                  This is <span className="font-semibold text-text-primary">{insightNarrative.absDiff} percentage points {insightNarrative.direction}</span> than the
+                  approximate national average of <span className="font-semibold text-text-primary">{NATIONAL_BASELINE_RATE.toFixed(0)}%</span>.
+                </p>
+                {insightNarrative.positiveDrivers.length > 0 && (
+                  <p className="text-[11px] sm:text-xs text-text-secondary mb-1">
+                    Key factors currently <span className="font-semibold text-brand-green">supporting</span> inclusion for this profile include:
+                    {' '}
+                    <span className="font-semibold text-text-primary">{insightNarrative.positiveDrivers.join(', ')}</span>.
+                  </p>
+                )}
+                {insightNarrative.negativeDrivers.length > 0 && (
+                  <p className="text-[11px] sm:text-xs text-text-secondary">
+                    Factors that <span className="font-semibold text-brand-red">reduce</span> this likelihood are:
+                    {' '}
+                    <span className="font-semibold text-text-primary">{insightNarrative.negativeDrivers.join(', ')}</span>.
+                  </p>
+                )}
+                {(insightNarrative.positiveDrivers.length > 0 || insightNarrative.negativeDrivers.length > 0) && (
+                  <p className="text-[11px] sm:text-xs text-text-secondary mt-1.5">
+                    In practical terms, improving this profile means strengthening the positive factors above and designing interventions
+                    that directly address the weaker ones.
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+
+          <div className="mt-3 sm:mt-4 flex justify-center sm:justify-end">
+            <ModelPerformanceBadge />
+          </div>
+        </div>
+
+        {/* Persona Presets Section */}
+        <div className="p-6 pt-4 lg:px-6">
+          <div className="bg-white rounded-xl shadow-card border border-border-light p-4 sm:p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="text-base sm:text-lg font-semibold text-text-primary">Explore Sample Personas</h3>
+                <p className="text-xs sm:text-sm text-text-secondary mt-1">
+                  Click a profile to load preset characteristics, or customise values below
+                </p>
+              </div>
+              <button
+                onClick={resetToDefaults}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border-medium text-xs font-medium text-text-secondary hover:bg-bg-secondary hover:border-accent-primary transition-all"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Reset</span>
+              </button>
+            </div>
+            
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-3">
+              {PERSONAS.map((persona) => (
+                <button
+                  key={persona.id}
+                  onClick={() => loadPersona(persona.id)}
+                  className={`flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-all text-center ${
+                    selectedPersona === persona.id
+                      ? 'border-accent-primary bg-accent-primary/10 shadow-md'
+                      : 'border-border-light hover:border-accent-primary/50 hover:bg-bg-secondary'
+                  }`}
+                >
+                  <div className="p-2 rounded-lg bg-gradient-to-br from-accent-primary/10 to-accent-secondary/10">
+                    <persona.icon className="w-5 h-5 sm:w-6 sm:h-6 text-accent-primary" />
+                  </div>
+                  <div className="space-y-0.5">
+                    <p className="text-xs font-semibold text-text-primary leading-tight">{persona.label}</p>
+                    <p className="text-[10px] text-text-tertiary leading-tight">{persona.description}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
@@ -520,16 +1005,29 @@ export default function IndividualMode({ onReset }) {
                 step={1}
                 help="Number of nearby facilities accessible from your home"
               />
-              <div className="bg-amber-50 border-l-4 border-amber-500 p-2 rounded-r-lg">
-                <div className="flex items-start gap-2">
-                  <Info className="w-3 h-3 text-amber-600 mt-0.5 flex-shrink-0" />
-                  <div>
-                    <p className="text-xs text-amber-800 leading-relaxed">
+              <div className="bg-amber-50 border border-amber-200 rounded-lg overflow-hidden">
+                <button
+                  onClick={() => setShowInfrastructureDetails(!showInfrastructureDetails)}
+                  className="w-full flex items-center justify-between p-2 hover:bg-amber-100 transition-colors"
+                >
+                  <div className="flex items-center gap-2">
+                    <Info className="w-3.5 h-3.5 text-amber-600" />
+                    <span className="text-xs font-semibold text-amber-900">What facilities are counted?</span>
+                  </div>
+                  {showInfrastructureDetails ? (
+                    <ChevronUp className="w-3.5 h-3.5 text-amber-600" />
+                  ) : (
+                    <ChevronDown className="w-3.5 h-3.5 text-amber-600" />
+                  )}
+                </button>
+                {showInfrastructureDetails && (
+                  <div className="px-2 pb-2 pt-0 border-t border-amber-200">
+                    <p className="text-xs text-amber-800 leading-relaxed mt-2">
                       <strong>What counts:</strong> Bank branch, ATM, financial agent, microfinance, provision shop, petrol station, pharmacy, restaurant, post office, mobile phone kiosk, mortgage bank, non-interest provider. 
                       <strong className="block mt-1">Impact:</strong> More nearby facilities = easier access to financial services = higher inclusion likelihood.
                     </p>
                   </div>
-                </div>
+                )}
               </div>
             </div>
 
@@ -562,18 +1060,30 @@ export default function IndividualMode({ onReset }) {
           <div className="md:col-span-2 lg:col-span-1">
             <FeatureCard icon={PiggyBank} title="Savings Behavior" color="from-purple-500 to-pink-500">
               {/* Informal Savings Notice */}
-              <div className="bg-blue-50 border-l-4 border-blue-500 p-3 rounded-r-lg">
-                <div className="flex items-start gap-2">
-                  <Info className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                  <div>
-                    <p className="text-xs font-semibold text-blue-900 mb-1">About Savings Behavior</p>
-                    <p className="text-xs text-blue-700 leading-relaxed">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg overflow-hidden">
+                <button
+                  onClick={() => setShowSavingsDetails(!showSavingsDetails)}
+                  className="w-full flex items-center justify-between p-3 hover:bg-blue-100 transition-colors"
+                >
+                  <div className="flex items-center gap-2">
+                    <Info className="w-4 h-4 text-blue-600" />
+                    <span className="text-xs font-semibold text-blue-900">About Savings Behavior</span>
+                  </div>
+                  {showSavingsDetails ? (
+                    <ChevronUp className="w-4 h-4 text-blue-600" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4 text-blue-600" />
+                  )}
+                </button>
+                {showSavingsDetails && (
+                  <div className="px-3 pb-3 pt-0 border-t border-blue-200">
+                    <p className="text-xs text-blue-700 leading-relaxed mt-3">
                       "Savings" in this model includes <strong>only informal methods</strong> (saving at home, esusu/ajo/adashi groups, family/friends, physical assets). 
                       Formal savings (bank accounts) are <strong>not</strong> included.
                       <strong className="block mt-1">Result:</strong> These variables have near-zero coefficients because informal savings don't strongly predict formal financial inclusion. However, they still indicate some financial discipline.
                     </p>
                   </div>
-                </div>
+                )}
               </div>
               
               {/* Master Toggle */}
@@ -658,16 +1168,28 @@ export default function IndividualMode({ onReset }) {
           {/* Employment & Income Sources */}
           <FeatureCard icon={Wallet} title="Employment & Income Sources" color="from-amber-500 to-orange-500">
             {/* Income Source Explanation */}
-            <div className="bg-amber-50 border-l-4 border-amber-500 p-3 rounded-r-lg mb-3">
-              <div className="flex items-start gap-2">
-                <AlertCircle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
-                <div>
-                  <p className="text-xs font-semibold text-amber-900 mb-1">About Income Sources</p>
-                  <p className="text-xs text-amber-800 leading-relaxed">
+            <div className="bg-amber-50 border border-amber-200 rounded-lg overflow-hidden mb-3">
+              <button
+                onClick={() => setShowIncomeDetails(!showIncomeDetails)}
+                className="w-full flex items-center justify-between p-3 hover:bg-amber-100 transition-colors"
+              >
+                <div className="flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 text-amber-600" />
+                  <span className="text-xs font-semibold text-amber-900">About Income Sources</span>
+                </div>
+                {showIncomeDetails ? (
+                  <ChevronUp className="w-4 h-4 text-amber-600" />
+                ) : (
+                  <ChevronDown className="w-4 h-4 text-amber-600" />
+                )}
+              </button>
+              {showIncomeDetails && (
+                <div className="px-3 pb-3 pt-0 border-t border-amber-200">
+                  <p className="text-xs text-amber-800 leading-relaxed mt-3">
                     Each toggle represents a <strong>type</strong> of income, not the number of jobs. A person can have multiple businesses but it's still one "Business Income" type. 
                   </p>
                 </div>
-              </div>
+              )}
             </div>
             <ToggleInput
               label="Formally Employed"

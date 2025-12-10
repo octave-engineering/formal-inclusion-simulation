@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Policy Prediction Test</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }
+    .container { max-width: 1200px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    h1 { color: #2c5282; border-bottom: 3px solid #4299e1; padding-bottom: 10px; }
+    h2 { color: #2d3748; margin-top: 30px; }
+    .metric { display: inline-block; margin: 15px 20px 15px 0; padding: 15px 25px; background: #edf2f7; border-radius: 8px; border-left: 4px solid #4299e1; }
+    .metric-label { font-size: 12px; color: #718096; text-transform: uppercase; letter-spacing: 0.5px; }
+    .metric-value { font-size: 28px; font-weight: bold; color: #2d3748; }
+    .success { color: #38a169; }
+    .warning { color: #dd6b20; }
+    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+    th, td { padding: 12px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+    th { background: #edf2f7; font-weight: 600; color: #2d3748; }
+    tr:hover { background: #f7fafc; }
+    .loading { text-align: center; padding: 40px; color: #718096; }
+    #status { margin-top: 20px; padding: 15px; background: #bee3f8; border-radius: 6px; color: #2c5282; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>📊 Policy Dashboard - Prediction Validation</h1>
+    <div id="status">Loading population data...</div>
+    
+    <div id="results"></div>
+  </div>
+
+  <script type="module">
+    import { COEFFICIENTS, INTERCEPT } from './dashboard/src/utils/prediction_new.js';
+    
+    const EFINA_BASELINE_RATE = 0.64;
+    const RAW_BASELINE_RATE = 0.6121;
+    const CALIBRATION_FACTOR = EFINA_BASELINE_RATE / RAW_BASELINE_RATE;
+    
+    // Prediction function
+    function predictIndividual(person) {
+      let score = INTERCEPT;
+      
+      for (const [feature, coefficient] of Object.entries(COEFFICIENTS)) {
+        const value = person[feature] !== undefined ? person[feature] : 0;
+        score += coefficient * value;
+      }
+      
+      return 1 / (1 + Math.exp(-score));
+    }
+    
+    // Load and test
+    async function runValidation() {
+      try {
+        const response = await fetch('./dashboard/public/population_data.json');
+        const population = await response.json();
+        
+        document.getElementById('status').innerHTML = `✅ Loaded ${population.length.toLocaleString()} population records`;
+        
+        console.time('Prediction Time');
+        const predictions = population.map(person => predictIndividual(person));
+        console.timeEnd('Prediction Time');
+        
+        // Calculate statistics
+        const included = predictions.filter(p => p >= 0.5).length;
+        const rawRate = included / population.length;
+        const calibratedRate = rawRate * CALIBRATION_FACTOR;
+        
+        // Demographic breakdowns
+        const males = population.filter(p => p.gender_male === 1);
+        const females = population.filter(p => p.gender_male === 0);
+        const maleIncluded = predictions.filter((p, idx) => p >= 0.5 && population[idx].gender_male === 1).length;
+        const femaleIncluded = predictions.filter((p, idx) => p >= 0.5 && population[idx].gender_male === 0).length;
+        
+        const urban = population.filter(p => p.urban === 1);
+        const rural = population.filter(p => p.urban === 0);
+        const urbanIncluded = predictions.filter((p, idx) => p >= 0.5 && population[idx].urban === 1).length;
+        const ruralIncluded = predictions.filter((p, idx) => p >= 0.5 && population[idx].urban === 0).length;
+        
+        // Age groups
+        const ageGroups = ['age_25-34', 'age_35-44', 'age_45-54', 'age_55-64', 'age_65+'];
+        const ageStats = ageGroups.map(ag => {
+          const group = population.filter(p => p[ag] === 1);
+          const groupIncluded = predictions.filter((p, idx) => p >= 0.5 && population[idx][ag] === 1).length;
+          return {
+            name: ag,
+            count: group.length,
+            included: groupIncluded,
+            rate: (groupIncluded / group.length * 100).toFixed(1)
+          };
+        });
+        
+        // Render results
+        document.getElementById('results').innerHTML = `
+          <h2>Baseline Metrics</h2>
+          <div class="metric">
+            <div class="metric-label">Total Population</div>
+            <div class="metric-value">${population.length.toLocaleString()}</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Included (Raw)</div>
+            <div class="metric-value">${included.toLocaleString()}</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Raw Baseline Rate</div>
+            <div class="metric-value">${(rawRate * 100).toFixed(2)}%</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">EFInA Calibrated Rate</div>
+            <div class="metric-value success">${(calibratedRate * 100).toFixed(2)}%</div>
+          </div>
+          
+          <h2>Demographic Breakdowns</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Demographic</th>
+                <th>Population</th>
+                <th>Included</th>
+                <th>Inclusion Rate</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Male</strong></td>
+                <td>${males.length.toLocaleString()}</td>
+                <td>${maleIncluded.toLocaleString()}</td>
+                <td>${(maleIncluded / males.length * 100).toFixed(1)}%</td>
+              </tr>
+              <tr>
+                <td><strong>Female</strong></td>
+                <td>${females.length.toLocaleString()}</td>
+                <td>${femaleIncluded.toLocaleString()}</td>
+                <td>${(femaleIncluded / females.length * 100).toFixed(1)}%</td>
+              </tr>
+              <tr>
+                <td><strong>Urban</strong></td>
+                <td>${urban.length.toLocaleString()}</td>
+                <td>${urbanIncluded.toLocaleString()}</td>
+                <td>${(urbanIncluded / urban.length * 100).toFixed(1)}%</td>
+              </tr>
+              <tr>
+                <td><strong>Rural</strong></td>
+                <td>${rural.length.toLocaleString()}</td>
+                <td>${ruralIncluded.toLocaleString()}</td>
+                <td>${(ruralIncluded / rural.length * 100).toFixed(1)}%</td>
+              </tr>
+            </tbody>
+          </table>
+          
+          <h2>Age Group Distribution</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Age Group</th>
+                <th>Population</th>
+                <th>Included</th>
+                <th>Inclusion Rate</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${ageStats.map(stat => `
+                <tr>
+                  <td><strong>${stat.name}</strong></td>
+                  <td>${stat.count.toLocaleString()}</td>
+                  <td>${stat.included.toLocaleString()}</td>
+                  <td>${stat.rate}%</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+          
+          <h2>✅ Validation Complete</h2>
+          <p><strong>Calibration Factor:</strong> ${CALIBRATION_FACTOR.toFixed(4)}</p>
+          <p><strong>Performance:</strong> Predictions calculated in milliseconds (check console)</p>
+          <p><strong>Ready for Policy Dashboard!</strong></p>
+        `;
+        
+      } catch (error) {
+        document.getElementById('status').innerHTML = `❌ Error: ${error.message}`;
+        document.getElementById('results').innerHTML = `<pre>${error.stack}</pre>`;
+      }
+    }
+    
+    runValidation();
+  </script>
+</body>
+</html>
