@@ -1,0 +1,13 @@
+variable,correlation
+transactional_account_binary,0.7030340777974738
+access_agents,0.6753184744762585
+wealth_numeric,0.48505222316438473
+education_numeric,0.47477173045961657
+urban,0.27607015166226717
+mobile_money_binary,0.23811722390559173
+income_numeric,0.2253113236684132
+savings_frequency_numeric,0.2018767479828443
+runs_out_of_money,0.11996749973518159
+gender_male,0.09747837125231817
+Population,0.06950461697632437
+Age_numeric,0.03272879369019067

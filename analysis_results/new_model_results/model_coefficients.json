@@ -1,0 +1,18 @@
+{
+  "education_numeric": 0.7789365004211213,
+  "wealth_numeric": 0.7637141224864036,
+  "income_numeric": 0.35732767902304935,
+  "runs_out_of_money": 0.2426022946974095,
+  "savings_frequency_numeric": 0.20534029000973744,
+  "gender_male": 0.199851696740676,
+  "urban": 0.13662317757551812,
+  "Age_numeric": 0.09257011619053562,
+  "Old_Age_Planning": -0.04436868607144439,
+  "Diverse_Savings_Reasons": 0.034950181427358194,
+  "Savings_Behavior_Score": -0.012092590690032861,
+  "Informal_Savings_Mode": -0.007431563939147549,
+  "Savings_Frequency_Score": -0.005925938342462554,
+  "Saves_Money": -0.004931530888698402,
+  "Regular_Saver": -0.004465820476498675,
+  "intercept": 0.11329074193717088
+}

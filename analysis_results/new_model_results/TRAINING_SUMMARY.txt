@@ -1,0 +1,46 @@
+
+NON-CIRCULAR MODEL TRAINING SUMMARY
+====================================
+
+Dataset:
+  - Total samples: 85,341
+  - Training samples: 68,272
+  - Test samples: 17,069
+  - Features: 15
+
+Model Performance:
+  - Test Accuracy: 0.7521
+  - Test AUC-ROC: 0.8328
+  - 5-Fold CV AUC: 0.8357 (+/- 0.0020)
+  - Baseline Rate: 0.5087
+  - Improvement: 24.34 pp
+
+Top 5 Positive Predictors:
+  1. education_numeric: 0.7789
+  2. wealth_numeric: 0.7637
+  3. income_numeric: 0.3573
+  4. runs_out_of_money: 0.2426
+  5. savings_frequency_numeric: 0.2053
+
+Top 5 Negative Predictors:
+  1. Old_Age_Planning: -0.0444
+  2. Savings_Behavior_Score: -0.0121
+  3. Informal_Savings_Mode: -0.0074
+  4. Savings_Frequency_Score: -0.0059
+  5. Saves_Money: -0.0049
+
+Output Files:
+  - new_model_results\feature_coefficients.csv
+  - new_model_results\model_coefficients.json
+  - new_model_results\model_metrics.json
+  - new_model_results\model_config.json
+  - new_model_results\feature_importance.png
+  - new_model_results\roc_curve.png
+  - new_model_results\confusion_matrix.png
+
+Next Steps:
+  1. Review feature coefficients and model performance
+  2. Update dashboard prediction.js with new coefficients
+  3. Update dashboard variable lists
+  4. Regenerate population_data.json with new model
+  5. Test dashboard with new predictions

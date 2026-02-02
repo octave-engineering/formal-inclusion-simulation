@@ -1,0 +1,18 @@
+Access to Financial Agents Index
+==================================================
+
+Components:
+1. financial_agents_binary
+2. transactional_account_binary
+3. mobile_money_binary
+
+Construction:
+1. Each component standardized (z-score)
+2. Equal-weighted average of standardized components
+3. Rescaled to [0, 1] range using min-max normalization
+
+Statistics:
+Mean: 0.2052
+Std: 0.2544
+Min: 0.0000
+Max: 1.0000

@@ -1,0 +1,20 @@
+variable,VIF
+access_agents,10.702809952099898
+transactional_account_binary,4.676431522624433
+mobile_money_binary,4.195197029508044
+wealth_numeric,2.3819841139310873
+year_2023,1.94092603295026
+region_North West,1.6982847361235467
+education_numeric,1.6776545195900379
+region_South West,1.6579763200578133
+region_North East,1.597173896643273
+region_South South,1.5171309237672517
+urban,1.5006327794339498
+region_South East,1.4570034831361935
+runs_out_of_money,1.1931059793081649
+income_numeric,1.179557060026888
+savings_frequency_numeric,1.1078503862678508
+Age_numeric,1.1055460433240947
+gender_male,1.100334485674088
+Population,1.0689512091513536
+year_2020,

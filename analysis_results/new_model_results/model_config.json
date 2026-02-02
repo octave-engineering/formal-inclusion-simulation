@@ -1,0 +1,60 @@
+{
+  "features": [
+    "gender_male",
+    "Age_numeric",
+    "education_numeric",
+    "income_numeric",
+    "wealth_numeric",
+    "urban",
+    "savings_frequency_numeric",
+    "runs_out_of_money",
+    "Saves_Money",
+    "Informal_Savings_Mode",
+    "Regular_Saver",
+    "Diverse_Savings_Reasons",
+    "Old_Age_Planning",
+    "Savings_Frequency_Score",
+    "Savings_Behavior_Score"
+  ],
+  "scaler_mean": [
+    0.49635282399812514,
+    36.285841926412,
+    1.6523172017811107,
+    31900.295948558705,
+    2.689770330442934,
+    0.36657780642137333,
+    0.9971730724162174,
+    0.6623798921959222,
+    0.12476564330911648,
+    0.07367588469650808,
+    0.09998242324818374,
+    0.07155202718537615,
+    0.28401101476447155,
+    0.3576722521677994,
+    0.6539869932036559
+  ],
+  "scaler_scale": [
+    0.4999866979302662,
+    12.054610714715444,
+    0.7337216065953476,
+    40627.556680022935,
+    1.3530216403137145,
+    0.48186981463945994,
+    1.2964842582781235,
+    0.47289826666043167,
+    0.3304529884246454,
+    0.2612427007797441,
+    0.2999765629005119,
+    0.25774470817271755,
+    0.45094207860536445,
+    1.1013831749085157,
+    1.3156986826400827
+  ],
+  "model_type": "LogisticRegression",
+  "model_params": {
+    "random_state": 42,
+    "max_iter": 1000,
+    "class_weight": "balanced",
+    "solver": "lbfgs"
+  }
+}

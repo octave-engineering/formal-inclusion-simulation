@@ -1,0 +1,7 @@
+{
+  "weighted_formal_inclusion_rate": 0.6286953866436685,
+  "published_formal_inclusion_percent_reference": 0.64,
+  "best_model": "LogisticRegression",
+  "reports_dir": "C:\\Users\\Abdul\\Documents\\Octave Analytics\\Efina\\Formal Inclusion Simulation\\reports_excel",
+  "artifacts_dir": "C:\\Users\\Abdul\\Documents\\Octave Analytics\\Efina\\Formal Inclusion Simulation\\model_artifacts_excel"
+}
