@@ -1,0 +1,16 @@
+feature,importance
+Formal_ID_Count,0.16307197607115928
+Education_Ordinal,0.14851015506827428
+Mobile_Digital_Readiness,0.11245521314406996
+Formal_Employment_Binary,0.07809676315566198
+Age_18_Plus,0.06886893376790267
+Bank_Account,0.0659694861413982
+Gender_Male,0.06511856520491155
+Business_Income_Binary,0.05915294816165981
+Sector_Urban,0.056310302385959965
+Financial_Access_Index,0.056087748101276744
+Access_Diversity_Score,0.05608774810127674
+Passive_Income_Binary,0.03390174733176919
+Income_Diversity_Score,0.014435336193638707
+Agricultural_Income_Binary,0.012042488354173257
+Income_Level_Ordinal,0.009890588816867676

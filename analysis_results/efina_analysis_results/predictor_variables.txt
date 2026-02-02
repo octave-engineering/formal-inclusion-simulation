@@ -1,0 +1,22 @@
+Predictor Variables for Formal Financial Inclusion
+==================================================
+
+1. Age_numeric
+2. gender_male
+3. education_numeric
+4. wealth_numeric
+5. mobile_money_binary
+6. transactional_account_binary
+7. savings_frequency_numeric
+8. runs_out_of_money
+9. income_numeric
+10. access_agents
+11. urban
+12. region_North East
+13. region_North West
+14. region_South East
+15. region_South South
+16. region_South West
+17. year_2020
+18. year_2023
+19. Population

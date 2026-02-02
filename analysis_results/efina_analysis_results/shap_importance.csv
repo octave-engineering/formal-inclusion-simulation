@@ -1,0 +1,20 @@
+variable,shap_importance,rank
+access_agents,3.5970407,1
+year_2023,0.6176479,2
+transactional_account_binary,0.49884045,3
+education_numeric,0.23069113,4
+wealth_numeric,0.2299771,5
+Population,0.18002294,6
+savings_frequency_numeric,0.16388014,7
+runs_out_of_money,0.15418899,8
+urban,0.114603,9
+income_numeric,0.11191091,10
+gender_male,0.10480666,11
+Age_numeric,0.10105365,12
+region_South East,0.07177341,13
+region_South West,0.060323995,14
+region_South South,0.043866854,15
+region_North West,0.0334059,16
+region_North East,0.026460588,17
+mobile_money_binary,0.015451906,18
+year_2020,0.0,19

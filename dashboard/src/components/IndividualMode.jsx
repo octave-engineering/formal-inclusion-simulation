@@ -395,7 +395,7 @@ export default function IndividualMode({ onReset }) {
     } else if (prediction <= SATURATION_LOW) {
       return {
         type: 'low',
-        message: 'Very low likelihood - improvements needed across multiple factors',
+        message: 'Very low likelihood',
         badge: 'Low Probability Zone',
         color: 'text-red-700',
         bgColor: 'bg-red-50',

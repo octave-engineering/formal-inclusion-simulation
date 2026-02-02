@@ -1,0 +1,59 @@
+
+MODEL WITH STATE VARIABLES - TRAINING SUMMARY
+==============================================
+
+Dataset:
+  - Total samples: 85,341
+  - Training samples: 68,272
+  - Test samples: 17,069
+  - Total features: 55
+  - Base features: 19
+  - State dummy variables: 36
+  - Reference state: ABIA
+
+Model Performance:
+  - Test Accuracy: 0.7599
+  - Test AUC-ROC: 0.8392
+  - 5-Fold CV AUC: 0.8410 (+/- 0.0019)
+  - Baseline Rate: 0.5087
+  - Improvement over baseline: 25.11 pp
+
+Top 5 Base Features (Positive):
+  1. education_numeric: 0.8004
+  2. wealth_numeric: 0.7424
+  3. income_numeric: 0.3068
+  4. runs_out_of_money: 0.2162
+  5. savings_frequency_numeric: 0.2155
+
+Top 5 States (Highest Inclusion):
+  1. KOGI: 0.0702
+  2. EDO: 0.0653
+  3. KWARA: 0.0557
+  4. NASARAWA: 0.0542
+  5. FCT ABUJA: 0.0440
+
+Top 5 States (Lowest Inclusion):
+  1. KATSINA: -0.0508
+  2. ZAMFARA: -0.0560
+  3. ADAMAWA: -0.0583
+  4. BAYELSA: -0.0609
+  5. KANO: -0.0903
+
+Output Files:
+  - new_model_results_with_states\feature_coefficients.csv
+  - new_model_results_with_states\base_feature_coefficients.csv
+  - new_model_results_with_states\state_coefficients.csv
+  - new_model_results_with_states\model_coefficients.json
+  - new_model_results_with_states\model_metrics.json
+  - new_model_results_with_states\model_config.json
+  - new_model_results_with_states\base_feature_importance.png
+  - new_model_results_with_states\state_coefficients.png
+  - new_model_results_with_states\roc_curve.png
+  - new_model_results_with_states\confusion_matrix.png
+
+Next Steps:
+  1. Review model performance vs. previous model
+  2. Analyze state-specific coefficients
+  3. Update dashboard prediction.js with new coefficients
+  4. Regenerate population_data.json with new model
+  5. Test dashboard with state-specific predictions

@@ -1,0 +1,32 @@
+{
+  "formal_inclusion": [
+    "FormallyIncluded",
+    "TransactionalAccount"
+  ],
+  "survey_weights": [],
+  "survey_strata": [],
+  "survey_psu": [
+    "PrimarySourceOfMoney"
+  ],
+  "agent_access": [
+    "FinancialAgents"
+  ],
+  "year": [
+    "Year"
+  ],
+  "demographics": [
+    "PreferredLanguage",
+    "Gender",
+    "EducationLevel",
+    "MobileMoneyUsage",
+    "FinancialAgents",
+    "Age_numeric",
+    "Age_group",
+    "IncomeLevel",
+    "EducationLevel_copy"
+  ],
+  "geography": [
+    "region",
+    "state"
+  ]
+}
